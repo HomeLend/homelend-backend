@@ -1,35 +1,35 @@
 'use strict';
-var path = require('path');
-var fs = require('fs');
-var util = require('util');
-var hfc = require('fabric-client');
-var helper = require('./helper.js');
-var logger = helper.getLogger('instantiate-chaincode');
+const path = require('path');
+const fs = require('fs');
+const util = require('util');
+const hfc = require('fabric-client');
+const helper = require('./helper.js');
+const logger = helper.getLogger('instantiate-chaincode');
 
-var instantiateChaincode = async function(channelName, chaincodeName, chaincodeVersion, functionName, chaincodeType, args, username, org_name) {
+const instantiateChaincode = async function(channelName, chaincodeName, chaincodeVersion, functionName, chaincodeType, args, username, org_name) {
 	logger.debug('\n\n============ Instantiate chaincode on channel ' + channelName +
 		' ============\n');
-	var error_message = null;
-	var eventhubs_in_use = [];
+	const error_message = null;
+	const eventhubs_in_use = [];
 	try {
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		const client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
-		var channel = client.getChannel(channelName);
+		const channel = client.getChannel(channelName);
 		if(!channel) {
 			let message = util.format('Channel %s was not defined in the connection profile', channelName);
 			logger.error(message);
 			throw new Error(message);
 		}
-		var tx_id = client.newTransactionID(true); // Get an admin based transactionID
+		const tx_id = client.newTransactionID(true); // Get an admin based transactionID
 		                                       // An admin based transactionID will
 		                                       // indicate that admin identity should
 		                                       // be used to sign the proposal request.
 		// will need the transaction ID string for the event registration later
-		var deployId = tx_id.getTransactionID();
+		const deployId = tx_id.getTransactionID();
 
 		// send proposal to endorser
-		var request = {
+		const request = {
 			chaincodeId: chaincodeName,
 			chaincodeType: chaincodeType,
 			chaincodeVersion: chaincodeVersion,
@@ -45,14 +45,14 @@ var instantiateChaincode = async function(channelName, chaincodeName, chaincodeV
 		// the returned object has both the endorsement results
 		// and the actual proposal, the proposal will be needed
 		// later when we send a transaction to the orderer
-		var proposalResponses = results[0];
-		var proposal = results[1];
+		const proposalResponses = results[0];
+		const proposal = results[1];
 
 		// lets have a look at the responses to see if they are
 		// all good, if good they will also include signatures
 		// required to be committed
-		var all_good = true;
-		for (var i in proposalResponses) {
+		const all_good = true;
+		for (const i in proposalResponses) {
 			let one_good = false;
 			if (proposalResponses && proposalResponses[i].response &&
 				proposalResponses[i].response.status === 200) {
@@ -73,7 +73,7 @@ var instantiateChaincode = async function(channelName, chaincodeName, chaincodeV
 
 			// tell each peer to join and wait for the event hub of each peer to tell us
 			// that the channel has been created on each peer
-			var promises = [];
+			const promises = [];
 			let event_hubs = client.getEventHubsForOrg(org_name);
 			logger.debug('found %s eventhubs for this organization %s',event_hubs.length, org_name);
 			event_hubs.forEach((eh) => {
@@ -112,7 +112,7 @@ var instantiateChaincode = async function(channelName, chaincodeName, chaincodeV
 				eventhubs_in_use.push(eh);
 			});
 
-			var orderer_request = {
+			const orderer_request = {
 				txId: tx_id, //must includethe transaction id so that the outbound
 				             // transaction to the orderer will be signed by the admin
 							 // id as was the proposal above, notice that transactionID
@@ -120,7 +120,7 @@ var instantiateChaincode = async function(channelName, chaincodeName, chaincodeV
 				proposalResponses: proposalResponses,
 				proposal: proposal
 			};
-			var sendPromise = channel.sendTransaction(orderer_request);
+			const sendPromise = channel.sendTransaction(orderer_request);
 			// put the send to the orderer last so that the events get registered and
 			// are ready for the orderering and committing
 			promises.push(sendPromise);

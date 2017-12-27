@@ -1,21 +1,21 @@
-var util = require('util');
-var fs = require('fs');
-var path = require('path');
+const util = require('util');
+const fs = require('fs');
+const path = require('path');
 
-var helper = require('./helper.js');
-var logger = helper.getLogger('Create-Channel');
+const helper = require('./helper.js');
+const logger = helper.getLogger('Create-Channel');
 //Attempt to send a request to the orderer with the sendTransaction method
-var createChannel = async function(channelName, channelConfigPath, username, orgName) {
+const createChannel = async function(channelName, channelConfigPath, username, orgName) {
 	logger.debug('\n====== Creating Channel \'' + channelName + '\' ======\n');
 	try {
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(orgName);
+		const client = await helper.getClientForOrg(orgName);
 		logger.debug('Successfully got the fabric client for the organization "%s"', orgName);
 
 		// read in the envelope for the channel config raw bytes
-		var envelope = fs.readFileSync(path.join(__dirname, channelConfigPath));
+		const envelope = fs.readFileSync(path.join(__dirname, channelConfigPath));
 		// extract the channel config bytes from the envelope to be signed
-		var channelConfig = client.extractChannelConfig(envelope);
+		const channelConfig = client.extractChannelConfig(envelope);
 
 		//Acting as a client in the given organization provided with "orgName" param
 		// sign the channel config bytes as "endorsement", this is required by
@@ -31,7 +31,7 @@ var createChannel = async function(channelName, channelConfigPath, username, org
 		};
 
 		// send to orderer
-		var response = await client.createChannel(request)
+		const response = await client.createChannel(request)
 		logger.debug(' response ::%j', response);
 		if (response && response.status === 'SUCCESS') {
 			logger.debug('Successfully created the channel.');

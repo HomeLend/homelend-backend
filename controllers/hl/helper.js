@@ -1,24 +1,24 @@
 'use strict';
-var log4js = require('log4js');
-var logger = log4js.getLogger('Helper');
+const log4js = require('log4js');
+const logger = log4js.getLogger('Helper');
 logger.setLevel('DEBUG');
 
-var path = require('path');
-var util = require('util');
-var fs = require('fs-extra');
-var User = require('fabric-client/lib/User.js');
-var crypto = require('crypto');
-var copService = require('fabric-ca-client');
+const path = require('path');
+const util = require('util');
+const fs = require('fs-extra');
+const User = require('fabric-client/lib/User.js');
+const crypto = require('crypto');
+const copService = require('fabric-ca-client');
 
-var hfc = require('fabric-client');
+const hfc = require('fabric-client');
 hfc.setLogger(logger);
-var ORGS = hfc.getConfigSetting('network-config');
+const ORGS = hfc.getConfigSetting('network-config');
 
-var clients = {};
-var channels = {};
-var caClients = {};
+const clients = {};
+const channels = {};
+const caClients = {};
 
-var sleep = async function (sleep_time_ms) {
+const sleep = async function (sleep_time_ms) {
 	return new Promise(resolve => setTimeout(resolve, sleep_time_ms));
 }
 
@@ -59,18 +59,18 @@ async function getClientForOrg (userorg, username) {
 	return client;
 }
 
-var getRegisteredUser = async function(username, userOrg, isJson) {
+const getRegisteredUser = async function(username, userOrg, isJson) {
 	try {
-		var client = await getClientForOrg(userOrg);
+		const client = await getClientForOrg(userOrg);
 		logger.debug('Successfully initialized the credential stores');
 			// client can now act as an agent for organization Org1
 			// first check to see if the user is already enrolled
-		var user = await client.getUserContext(username, true);
+		const user = await client.getUserContext(username, true);
 		if (user && user.isEnrolled()) {
 			logger.info('Successfully loaded member from persistence');
 		} else {
 			// user was not enrolled, so we will need an admin user object to register
-			var admins = hfc.getConfigSetting('admins');
+			const admins = hfc.getConfigSetting('admins');
 			let adminUserObj = await client.setUserContext({username: admins[0].username, password: admins[0].secret});
 			let caClient = client.getCertificateAuthority();
 			let secret = await caClient.register({
@@ -83,7 +83,7 @@ var getRegisteredUser = async function(username, userOrg, isJson) {
 		}
 		if(user && user.isEnrolled) {
 			if (isJson && isJson === true) {
-				var response = {
+				const response = {
 					success: true,
 					secret: user._enrollmentSecret,
 					message: username + ' enrolled Successfully',
@@ -101,12 +101,12 @@ var getRegisteredUser = async function(username, userOrg, isJson) {
 };
 
 
-var setupChaincodeDeploy = function() {
+const setupChaincodeDeploy = function() {
 	process.env.GOPATH = path.join(__dirname, hfc.getConfigSetting('CC_SRC_PATH'));
 };
 
-var getLogger = function(moduleName) {
-	var logger = log4js.getLogger(moduleName);
+const getLogger = function(moduleName) {
+	const logger = log4js.getLogger(moduleName);
 	logger.setLevel('DEBUG');
 	return logger;
 };

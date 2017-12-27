@@ -1,13 +1,13 @@
 'use strict';
-var path = require('path');
-var fs = require('fs');
-var util = require('util');
-var config = require('../config.json');
-var helper = require('./helper.js');
-var logger = helper.getLogger('install-chaincode');
-var tx_id = null;
+const path = require('path');
+const fs = require('fs');
+const util = require('util');
+const config = require('../config.json');
+const helper = require('./helper.js');
+const logger = helper.getLogger('install-chaincode');
+const tx_id = null;
 
-var installChaincode = async function(peers, chaincodeName, chaincodePath,
+const installChaincode = async function(peers, chaincodeName, chaincodePath,
 	chaincodeVersion, chaincodeType, username, org_name) {
 	logger.debug('\n\n============ Install chaincode on organizations ============\n');
 	helper.setupChaincodeDeploy();
@@ -16,11 +16,11 @@ var installChaincode = async function(peers, chaincodeName, chaincodePath,
 		logger.info('Calling peers in organization "%s" to join the channel', org_name);
 
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		const client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
 
 		tx_id = client.newTransactionID(true); //get an admin transactionID
-		var request = {
+		const request = {
 			targets: peers,
 			chaincodePath: chaincodePath,
 			chaincodeId: chaincodeName,
@@ -31,14 +31,14 @@ var installChaincode = async function(peers, chaincodeName, chaincodePath,
 		// the returned object has both the endorsement results
 		// and the actual proposal, the proposal will be needed
 		// later when we send a transaction to the orederer
-		var proposalResponses = results[0];
-		var proposal = results[1];
+		const proposalResponses = results[0];
+		const proposal = results[1];
 
 		// lets have a look at the responses to see if they are
 		// all good, if good they will also include signatures
 		// required to be committed
-		var all_good = true;
-		for (var i in proposalResponses) {
+		const all_good = true;
+		for (const i in proposalResponses) {
 			let one_good = false;
 			if (proposalResponses && proposalResponses[i].response &&
 				proposalResponses[i].response.status === 200) {

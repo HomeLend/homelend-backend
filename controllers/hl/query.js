@@ -1,16 +1,16 @@
-var path = require('path');
-var fs = require('fs');
-var util = require('util');
-var hfc = require('fabric-client');
-var helper = require('./helper.js');
-var logger = helper.getLogger('Query');
+const path = require('path');
+const fs = require('fs');
+const util = require('util');
+const hfc = require('fabric-client');
+const helper = require('./helper.js');
+const logger = helper.getLogger('Query');
 
-var queryChaincode = async function(peer, channelName, chaincodeName, args, fcn, username, org_name) {
+const queryChaincode = async function(peer, channelName, chaincodeName, args, fcn, username, org_name) {
 	try {
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		const client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
-		var channel = client.getChannel(channelName);
+		const channel = client.getChannel(channelName);
 		if(!channel) {
 			let message = util.format('Channel %s was not defined in the connection profile', channelName);
 			logger.error(message);
@@ -18,7 +18,7 @@ var queryChaincode = async function(peer, channelName, chaincodeName, args, fcn,
 		}
 
 		// send query
-		var request = {
+		const request = {
 			targets : [peer], //queryByChaincode allows for multiple targets
 			chaincodeId: chaincodeName,
 			fcn: fcn,
@@ -41,12 +41,12 @@ var queryChaincode = async function(peer, channelName, chaincodeName, args, fcn,
 		return error.toString();
 	}
 };
-var getBlockByNumber = async function(peer, channelName, blockNumber, username, org_name) {
+const getBlockByNumber = async function(peer, channelName, blockNumber, username, org_name) {
 	try {
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		const client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
-		var channel = client.getChannel(channelName);
+		const channel = client.getChannel(channelName);
 		if(!channel) {
 			let message = util.format('Channel %s was not defined in the connection profile', channelName);
 			logger.error(message);
@@ -66,12 +66,12 @@ var getBlockByNumber = async function(peer, channelName, blockNumber, username, 
 		return error.toString();
 	}
 };
-var getTransactionByID = async function(peer, channelName, trxnID, username, org_name) {
+const getTransactionByID = async function(peer, channelName, trxnID, username, org_name) {
 	try {
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		const client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
-		var channel = client.getChannel(channelName);
+		const channel = client.getChannel(channelName);
 		if(!channel) {
 			let message = util.format('Channel %s was not defined in the connection profile', channelName);
 			logger.error(message);
@@ -91,12 +91,12 @@ var getTransactionByID = async function(peer, channelName, trxnID, username, org
 		return error.toString();
 	}
 };
-var getBlockByHash = async function(peer, channelName, hash, username, org_name) {
+const getBlockByHash = async function(peer, channelName, hash, username, org_name) {
 	try {
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		const client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
-		var channel = client.getChannel(channelName);
+		const channel = client.getChannel(channelName);
 		if(!channel) {
 			let message = util.format('Channel %s was not defined in the connection profile', channelName);
 			logger.error(message);
@@ -116,12 +116,12 @@ var getBlockByHash = async function(peer, channelName, hash, username, org_name)
 		return error.toString();
 	}
 };
-var getChainInfo = async function(peer, channelName, username, org_name) {
+const getChainInfo = async function(peer, channelName, username, org_name) {
 	try {
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		const client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
-		var channel = client.getChannel(channelName);
+		const channel = client.getChannel(channelName);
 		if(!channel) {
 			let message = util.format('Channel %s was not defined in the connection profile', channelName);
 			logger.error(message);
@@ -142,17 +142,17 @@ var getChainInfo = async function(peer, channelName, username, org_name) {
 	}
 };
 //getInstalledChaincodes
-var getInstalledChaincodes = async function(peer, channelName, type, username, org_name) {
+const getInstalledChaincodes = async function(peer, channelName, type, username, org_name) {
 	try {
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		const client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
 
 		let response = null
 		if (type === 'installed') {
 			response = await client.queryInstalledChaincodes(peer, true); //use the admin identity
 		} else {
-			var channel = client.getChannel(channelName);
+			const channel = client.getChannel(channelName);
 			if(!channel) {
 				let message = util.format('Channel %s was not defined in the connection profile', channelName);
 				logger.error(message);
@@ -166,7 +166,7 @@ var getInstalledChaincodes = async function(peer, channelName, type, username, o
 			} else {
 				logger.debug('<<< Instantiated Chaincodes >>>');
 			}
-			var details = [];
+			const details = [];
 			for (let i = 0; i < response.chaincodes.length; i++) {
 				logger.debug('name: ' + response.chaincodes[i].name + ', version: ' +
 					response.chaincodes[i].version + ', path: ' + response.chaincodes[i].path
@@ -185,16 +185,16 @@ var getInstalledChaincodes = async function(peer, channelName, type, username, o
 		return error.toString();
 	}
 };
-var getChannels = async function(peer, username, org_name) {
+const getChannels = async function(peer, username, org_name) {
 	try {
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		const client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
 
 		let response = await client.queryChannels(peer);
 		if (response) {
 			logger.debug('<<< channels >>>');
-			var channelNames = [];
+			const channelNames = [];
 			for (let i = 0; i < response.channels.length; i++) {
 				channelNames.push('channel id: ' + response.channels[i].channel_id);
 			}

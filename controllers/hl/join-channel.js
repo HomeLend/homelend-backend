@@ -1,24 +1,24 @@
-var util = require('util');
-var path = require('path');
-var fs = require('fs');
+const util = require('util');
+const path = require('path');
+const fs = require('fs');
 
-var helper = require('./helper.js');
-var logger = helper.getLogger('Join-Channel');
+const helper = require('./helper.js');
+const logger = helper.getLogger('Join-Channel');
 
 /*
  * Have an organization join a channel
  */
-var joinChannel = async function(channel_name, peers, username, org_name) {
+const joinChannel = async function(channel_name, peers, username, org_name) {
 	logger.debug('\n\n============ Join Channel start ============\n')
-	var error_message = null;
-	var all_eventhubs = [];
+	const error_message = null;
+	const all_eventhubs = [];
 	try {
 		logger.info('Calling peers in organization "%s" to join the channel', org_name);
 
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		const client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
-		var channel = client.getChannel(channel_name);
+		const channel = client.getChannel(channel_name);
 		if(!channel) {
 			let message = util.format('Channel %s was not defined in the connection profile', channel_name);
 			logger.error(message);
@@ -34,8 +34,8 @@ var joinChannel = async function(channel_name, peers, username, org_name) {
 
 		// tell each peer to join and wait for the event hub of each peer to tell us
 		// that the channel has been created on each peer
-		var promises = [];
-		var block_registration_numbers = [];
+		const promises = [];
+		const block_registration_numbers = [];
 		let event_hubs = client.getEventHubsForOrg(org_name);
 		event_hubs.forEach((eh) => {
 			let configBlockPromise = new Promise((resolve, reject) => {
@@ -52,7 +52,7 @@ var joinChannel = async function(channel_name, peers, username, org_name) {
 					// asked the peer to join
 					if (block.data.data.length === 1) {
 						// Config block must only contain one transaction
-						var channel_header = block.data.data[0].payload.header.channel_header;
+						const channel_header = block.data.data[0].payload.header.channel_header;
 						if (channel_header.channel_id === channel_name) {
 							let message = util.format('EventHub % has reported a block update for channel %s',eh._ep._endpoint.addr,channel_name);
 							logger.info(message)
