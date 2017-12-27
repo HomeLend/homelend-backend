@@ -44,6 +44,7 @@ app.all('/*', function(req, res, next) {
 const API = '/api/v1/';
 app.use(API + 'support', supportRouter);
 app.use(API + 'notification', notificationRouter);
+app.use(API + 'seller', sellerRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

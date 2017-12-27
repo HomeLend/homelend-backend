@@ -20,7 +20,7 @@ module.exports.advertise = (req, res) => {
   const price = req.body.price;
   const idnumber = req.body.idnumber;
 
-  const owner = req.decoded._id;
+  const owner = req.body.owner;
 
   if (!address || !price || !idnumber) {
     return res.status(httpStatus.BAD_REQUEST).
