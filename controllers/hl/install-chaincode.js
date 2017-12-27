@@ -5,7 +5,7 @@ const util = require('util');
 const config = require('../config.json');
 const helper = require('./helper.js');
 const logger = helper.getLogger('install-chaincode');
-const tx_id = null;
+let tx_id = null;
 
 const installChaincode = async function(peers, chaincodeName, chaincodePath,
 	chaincodeVersion, chaincodeType, username, org_name) {
@@ -37,7 +37,7 @@ const installChaincode = async function(peers, chaincodeName, chaincodePath,
 		// lets have a look at the responses to see if they are
 		// all good, if good they will also include signatures
 		// required to be committed
-		const all_good = true;
+		let all_good = true;
 		for (const i in proposalResponses) {
 			let one_good = false;
 			if (proposalResponses && proposalResponses[i].response &&

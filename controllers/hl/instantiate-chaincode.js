@@ -9,7 +9,7 @@ const logger = helper.getLogger('instantiate-chaincode');
 const instantiateChaincode = async function(channelName, chaincodeName, chaincodeVersion, functionName, chaincodeType, args, username, org_name) {
 	logger.debug('\n\n============ Instantiate chaincode on channel ' + channelName +
 		' ============\n');
-	const error_message = null;
+	let error_message = null;
 	const eventhubs_in_use = [];
 	try {
 		// first setup the client for this org
@@ -51,7 +51,7 @@ const instantiateChaincode = async function(channelName, chaincodeName, chaincod
 		// lets have a look at the responses to see if they are
 		// all good, if good they will also include signatures
 		// required to be committed
-		const all_good = true;
+		let all_good = true;
 		for (const i in proposalResponses) {
 			let one_good = false;
 			if (proposalResponses && proposalResponses[i].response &&

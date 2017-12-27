@@ -65,7 +65,7 @@ const getRegisteredUser = async function(username, userOrg, isJson) {
 		logger.debug('Successfully initialized the credential stores');
 			// client can now act as an agent for organization Org1
 			// first check to see if the user is already enrolled
-		const user = await client.getUserContext(username, true);
+		let user = await client.getUserContext(username, true);
 		if (user && user.isEnrolled()) {
 			logger.info('Successfully loaded member from persistence');
 		} else {
