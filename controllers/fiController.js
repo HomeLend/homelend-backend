@@ -1,3 +1,5 @@
+const db = require('../lib/db');
+
 module.exports.getListOfPendingRequests = (req, res) => {
   const _id = req.decoded._id;
 

