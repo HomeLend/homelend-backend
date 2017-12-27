@@ -1,0 +1,34 @@
+{
+  "sendActivationCode": {
+    "SUBJECT": "Your new account at [COMPANY_NAME]",
+    "PLAIN_MSG": "Dear [EMAIL],Please,activate your account by clicking this link, [ACTIVATE_LINK]    ",
+    "HTML_MSG": "Dear [EMAIL], <br/><br/> Please, activate your account by clicking this link <br/><br/> [ACTIVATE_LINK] "
+  },
+  "sendActivationAccount": {
+    "SUBJECT": "Your account has been blocked at [COMPANY_NAME]",
+    "PLAIN_MSG": "Dear [EMAIL], Please, activate your account by clicking this link, [ACTIVATE_LINK]    ",
+    "HTML_MSG": "Dear [EMAIL], <br/><br/> Please, activate your account by clicking this link <br/><br/> [ACTIVATE_LINK] "
+  },
+  "sendForgotPassword": {
+    "SUBJECT": "Reset password",
+    "PLAIN_MSG": "Dear [EMAIL],Please, follow this link to reset password for your account, [ACTIVATE_LINK]",
+    "HTML_MSG": "Dear [EMAIL], <br/><br/> Please, follow this link to reset password for you account,<br/><br/> [ACTIVATE_LINK]"
+  },
+  "sendPasswordResetCompleted": {
+    "SUBJECT": "Password has been successfully changed",
+    "PLAIN_MSG": "Dear [EMAIL],You password has been successfully changed",
+    "HTML_MSG": "Dear [EMAIL], <br/><br/> You password has been successfully changed"
+  },
+  "sendDepositTKN": {
+    "SUBJECT": "Successfully received payment",
+    "PLAIN_MSG": "Dear [EMAIL], We have successfully received your payment. [TOKEN_AMOUNT] tokens deposited in your account",
+    "HTML_MSG": "<div style='border:1px solid #ccc;padding:15px;color:#666; font-size: 12px;'>  Dear [EMAIL], <br/><br/> We have successfully received your payment. [TOKEN_AMOUNT] tokens deposited in your account"
+  },
+  "sendSubscription": {
+    "SUBJECT": "Your email subscribed in charg.io",
+    "PLAIN_MSG": "Dear [EMAIL], Thank you for your subscription. We will keep you updated.",
+    "HTML_MSG": "<body topmargin='0' rightmargin='0' bottommargin='0' leftmargin='0' marginwidth='0' marginheight='0' width='100%' style='border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; width: 100%; height: 100%; -webkit-font-smoothing: antialiased; text-size-adjust: 100%; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; line-height: 100%; background-color: #2D3445; color: #FFFFFF;' bgcolor='#2D3445' text='#FFFFFF'> <table width='100%' align='center' border='0' cellpadding='0' cellspacing='0' style='border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; width: 100%;' class='background'><tr><td align='center' valign='top' style='border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0;' bgcolor='#2D3445'> <table border='0' cellpadding='0' cellspacing='0' align='center' width='500' style='border-collapse: collapse; border-spacing: 0; padding: 0; width: inherit; max-width: 500px;' class='wrapper'> <tr> <td align='center' valign='top' style='border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; padding-top: 0px;' class='hero'><a target='_blank' style='text-decoration: none;' href='https://charg.io'><img border='0' vspace='0' hspace='0' src='https://charg.icostarter.co/assets/images/mail.png' alt='Please enable images to view this content' title='Charg Coin' width='340' style=' width: 87.5%; max-width: 340px; color: #FFFFFF; font-size: 13px; margin: 0; padding: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; border: none; display: block;'/></a></td> </tr> <tr> <td align='center' valign='top' style='border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; padding-left: 6.25%; padding-right: 6.25%; width: 87.5%; font-size: 24px; font-weight: bold; line-height: 130%; padding-top: 5px; color: #FFFFFF; font-family: sans-serif;' class='header'> Welcome to Charg Coin token sale! </td> </tr> <tr> <td align='center' valign='top' style='border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; padding-left: 6.25%; padding-right: 6.25%; width: 87.5%; font-size: 17px; font-weight: 400; line-height: 160%; padding-top: 15px; color: #FFFFFF; font-family: sans-serif;' class='paragraph'> We have accepted your interest in our ICO, we will keep you updated on our status. </td> </tr> <tr> <td align='center' valign='top' style='border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; padding-left: 6.25%; padding-right: 6.25%; width: 87.5%; padding-top: 30px;' class='line'><hr color='#565F73' align='center' width='100%' size='1' noshade style='margin: 0; padding: 0;' /> </td> </tr> <tr> <td align='center' valign='top' style='border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; padding-left: 6.25%; padding-right: 6.25%; width: 87.5%; font-size: 13px; font-weight: 400; line-height: 150%; padding-top: 10px; padding-bottom: 20px; color: #828999; font-family: sans-serif;' class='footer'> <strong>DISCLAIMER</strong>:<i>The content of this email is confidential and intended for the recipient specified in message only. It is strictly forbidden to share any part of this message with any third party, without a written consent of the sender. If you received this message by mistake, please reply to this message and follow with its deletion, so that we can ensure such a mistake does not occur in the future<i><small> </td> </tr> </table> </td></tr></table> </body>"
+  },
+  "FOOTER": "<br/><br/><strong>Thanks</strong> <br/> [COMPANY_NAME] Team! <br/> ",
+  "DISCLAIMER": "</div><br/><br/><br/><br/><small style='font-size:10px;'><strong>DISCLAIMER</strong>:<i>The content of this email is confidential and intended for the recipient specified in message only. It is strictly forbidden to share any part of this message with any third party, without a written consent of the sender. If you received this message by mistake, please reply to this message and follow with its deletion, so that we can ensure such a mistake does not occur in the future<i><small>"
+}
