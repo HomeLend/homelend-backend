@@ -11,12 +11,9 @@ const mailgun = require('../lib/mailgun');
 const mongoose = require('mongoose');
 const recaptcha = require('../lib/recaptcha');
 const logger = require('../lib/logger');
-const BitGoJS = require('bitgo');
 
 const UsersModel = db.model('Users');
-const AddressesModel = db.model('Addresses');
 const NotificationsModel = db.model('Notifications');
-const ProjectsModel = db.model('Projects');
 
 const Promise = require('bluebird');
 
@@ -33,7 +30,6 @@ const loggerName = '[AuthController]';
  * @param {String} req.body.password
  * @param {String} req.body.rpassword
  * @param {String} req.body.agree
- * @param {String} req.body.projectCode
  *
  */
 module.exports.signup = (req, res) => {
@@ -88,7 +84,7 @@ module.exports.signup = (req, res) => {
           }
 
           return Promise.all([
-            UsersModel.findOne({email: email}).exec()
+            UsersModel.findOne({email: email}).exec(),
           ]).spread((user) => {
             if (user) {
               return res.status(httpStatus.BAD_REQUEST).
@@ -105,26 +101,15 @@ module.exports.signup = (req, res) => {
               active: true,
             });
 
-            return newUser.save().then((user) => {
-              mailgun.sendActivationCode(project, user.email,
-                  user.activationCode).then(() => {
-                logger.debug(loggerName, methodName, 'Send activation code to',
-                    project.code, user.email);
-
-                return user;
-              }).then((user) => {
-                return NotificationsModel({
-                  userId: user._id,
-                  message: 'Successfully registered',
-                  type: 'event',
-                  status: 'successful',
-                  color: 'success',
-                }).save();
-              }).then(() => {
-                return res.send({msg: 'Successfully registered'});
-              });
+            return NotificationsModel({
+              userId: user._id,
+              message: 'Successfully registered',
+              type: 'event',
+              status: 'successful',
+              color: 'success',
+            }).save().then(() => {
+              return res.send({msg: 'Successfully registered'});
             });
-
           });
         }).
         catch((err) => {
@@ -212,43 +197,33 @@ module.exports.activateEmail = (req, res) => {
 
   email = String(email).toLowerCase();
 
-  ProjectsModel.findOne({code: req.projectCode}).exec().then((project) => {
-    if (!project) {
-      return res.status(httpStatus.BAD_REQUEST).
-          send({'err': 'Project not found'});
+  const updateQuery = {
+    verified: true,
+    active: true,
+    activationCode: randomstring.generate({length: 64}),
+    authCount: 0,
+  };
+
+  return UsersModel.findOne({email: email}).exec().then((currentUser) => {
+    if (!currentUser) {
+      if (currentUser.verified) {
+        return res.status(httpStatus.BAD_REQUEST).
+            send({'err': 'Already activated'});
+      }
     }
 
-    const updateQuery = {
-      verified: true,
-      active: true,
-      activationCode: randomstring.generate({length: 64}),
-      authCount: 0,
-    };
-
-    return UsersModel.findOne({email: email}).exec().then((currentUser) => {
-      if (!currentUser) {
-        if (currentUser.verified) {
-          return res.status(httpStatus.BAD_REQUEST).
-              send({'err': 'Already activated'});
-        }
+    return UsersModel.findOneAndUpdate({
+      email: email,
+      activationCode: activationCode,
+    }, updateQuery, {new: true}).exec().then((user) => {
+      if (!user) {
+        return res.status(httpStatus.BAD_REQUEST).
+            send(
+                {'err': 'Activation code is not correct. Please, use forgot password to generate new activation code and follow the link from your email address'});
       }
 
-      return UsersModel.findOneAndUpdate({
-        email: email,
-        activationCode: activationCode,
-      }, updateQuery, {new: true}).exec().then((user) => {
-        if (!user) {
-          return res.status(httpStatus.BAD_REQUEST).
-              send(
-                  {'err': 'Activation code is not correct. Please, use forgot password to generate new activation code and follow the link from your email address'});
-        }
-
-        return res.send(true);
-      });
+      return res.send(true);
     });
-  }).catch((err) => {
-    logger.error(loggerName, methodName, err);
-    return res.status(httpStatus.BAD_REQUEST).send({'err': 'Bad request'});
   });
 };
 
@@ -288,34 +263,25 @@ module.exports.forgotPassword = (req, res) => {
       activationCode: randomstring.generate({length: 64}),
     };
 
-    ProjectsModel.findOne({code: req.projectCode}).exec().then((project) => {
-      UsersModel.findOneAndUpdate({email: email}, updateQuery, {new: true}).
-          exec().
-          then((user) => {
-            if (!user) {
-              return res.status(httpStatus.BAD_REQUEST).
-                  send({'err': 'User not found'});
-            }
+    UsersModel.findOneAndUpdate({email: email}, updateQuery, {new: true}).
+        exec().
+        then((user) => {
+          if (!user) {
+            return res.status(httpStatus.BAD_REQUEST).
+                send({'err': 'User not found'});
+          }
 
-            return mailgun.sendForgotPassword(project, user.email,
-                user.activationCode).then(() => {
-              return NotificationsModel({
-                projectId: project._id,
-                userId: user._id,
-                message: 'Forgot password executed',
-                type: 'alert',
-                status: 'pending',
-                color: 'warning',
-              }).save();
-            }).then(() => {
-              return res.send(
-                  {msg: 'Password reset instructions has been sent to your email address'});
-            });
+          return NotificationsModel({
+            userId: user._id,
+            message: 'Forgot password executed',
+            type: 'alert',
+            status: 'pending',
+            color: 'warning',
+          }).save().then(() => {
+            return res.send(
+                {msg: 'Password reset instructions has been sent to your email address'});
           });
-    }).catch((err) => {
-      logger.error(loggerName, methodName, err);
-      return res.status(httpStatus.BAD_REQUEST).send({'err': 'Bad request'});
-    });
+        });
   });
 };
 
@@ -404,40 +370,26 @@ module.exports.changePassword = (req, res) => {
           send({'err': 'Invalid captcha value'});
     }
 
-    return ProjectsModel.findOne({code: req.projectCode}).
-        exec().
-        then((project) => {
-          return UsersModel.findOneAndUpdate({
-            email: email,
-            activationCode: activationCode,
-          }, updateQuery, {new: true}).exec().then((user) => {
-            if (!user) {
-              return res.status(httpStatus.BAD_REQUEST).
-                  send({'err': 'User not found'});
-            }
+    return UsersModel.findOneAndUpdate({
+      email: email,
+      activationCode: activationCode,
+    }, updateQuery, {new: true}).exec().then((user) => {
+      if (!user) {
+        return res.status(httpStatus.BAD_REQUEST).
+            send({'err': 'User not found'});
+      }
 
-            return mailgun.sendPasswordResetCompleted(project, user.email).
-                then(() => {
-                  return NotificationsModel({
-                    projectId: project._id,
-                    userId: user._id,
-                    message: 'Password successfully changed',
-                    type: 'alert',
-                    status: 'successful',
-                    color: 'success',
-                  }).save();
-                }).
-                then(() => {
-                  return res.send(
-                      {msg: 'Password has been succesfully changed'});
-                });
-          });
-        }).
-        catch((err) => {
-          logger.error(loggerName, methodName, err);
-          return res.status(httpStatus.BAD_REQUEST).
-              send({'err': 'Bad request'});
-        });
+      return NotificationsModel({
+        userId: user._id,
+        message: 'Password successfully changed',
+        type: 'alert',
+        status: 'successful',
+        color: 'success',
+      }).save().then(() => {
+        return res.send(
+            {msg: 'Password has been succesfully changed'});
+      });
+    });
   });
 };
 
@@ -450,21 +402,11 @@ module.exports.resendActivateEmail = (req, res) => {
     return res.status(httpStatus.BAD_REQUEST).send({'err': 'User not found'});
   }
 
-  ProjectsModel.findOne({code: req.projectCode}).exec().then((project) => {
-    return UsersModel.findOne({_id: new mongoose.Types.ObjectId(userId)}).
-        exec().
-        then((user) => {
-          mailgun.sendActivationCode(project, user.email, user.activationCode).
-              then(() => {
-                logger.debug(loggerName, methodName, 'Send activation code to',
-                    project.code, user.email);
-                return res.send(true);
-              });
-        });
-  }).catch((err) => {
-    logger.error(loggerName, methodName, err);
-    return res.status(httpStatus.BAD_REQUEST).send({'err': 'Bad request'});
-  });
+  return UsersModel.findOne({_id: new mongoose.Types.ObjectId(userId)}).
+      exec().
+      then((user) => {
+        return res.send(true);
+      });
 };
 
 module.exports.resendActivateAccount = (req, res) => {
@@ -518,9 +460,7 @@ module.exports.auth = (req, res) => {
               exec());
     }
 
-    authPromises.push(ProjectsModel.findOne({code: req.projectCode}).exec());
-
-    Promise.all(authPromises).spread((user, project) => {
+    Promise.all(authPromises).spread((user) => {
       if (!user) {
         return UsersModel.findOne({email: email}).exec().then((user) => {
           if (!user) {
@@ -539,7 +479,6 @@ module.exports.auth = (req, res) => {
                 then((user) => {
                   if (user.active) {
                     return NotificationsModel({
-                      projectId: project._id,
                       userId: user._id,
                       message: 'Could not login',
                       type: 'alert',
@@ -551,15 +490,13 @@ module.exports.auth = (req, res) => {
                     });
                   } else {
                     return NotificationsModel({
-                      projectId: project._id,
                       userId: user._id,
                       message: 'Account blocked',
                       type: 'alert',
                       status: '',
                       color: 'danger',
                     }).save().then(() => {
-                      return mailgun.sencActivateAccount(project, user.email,
-                          user.activationCode);
+                      return true;
                     }).then(() => {
                       return res.status(httpStatus.BAD_REQUEST).
                           send(
@@ -579,7 +516,6 @@ module.exports.auth = (req, res) => {
 
           if (!verified) {
             return NotificationsModel({
-              projectId: project._id,
               userId: user._id,
               message: 'Invalid 2FA code entered',
               type: 'alert',

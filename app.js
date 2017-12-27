@@ -44,7 +44,6 @@ app.use(API + 'auth', authRouter);
 app.use(API + 'support', supportRouter);
 app.use(API + '2fa', twoFactorAuthRouter);
 app.use(API + 'notification', notificationRouter);
-app.use(API + 'user', userRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

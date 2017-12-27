@@ -5,29 +5,24 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const SupportSchema = new Schema({
-    projectId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Projects',
-        required: true,
-    },
-    fullname: {
-        type: String,
-        required: true,
-    },
-    email: {
-        type: String,
-        required: true,
-    },
-    subject: {
-      type: String
-    },
-    message: {
-        type: String,
-    },
-    timestamp: {
-        type: Date,
-        default: Date.now,
-    }
+  fullname: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+  },
+  subject: {
+    type: String,
+  },
+  message: {
+    type: String,
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 db.model('Supports', SupportSchema);
