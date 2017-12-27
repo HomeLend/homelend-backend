@@ -7,7 +7,6 @@ const sha512 = require('js-sha512').sha512;
 const httpStatus = require('http-status-codes');
 const speakeasy = require('speakeasy');
 const randomstring = require('randomstring');
-const mailgun = require('../lib/mailgun');
 const mongoose = require('mongoose');
 const recaptcha = require('../lib/recaptcha');
 const logger = require('../lib/logger');
