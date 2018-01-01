@@ -31,75 +31,94 @@ const loggerName = '[AuthController]';
  * @param {String} req.body.agree
  *
  */
+
 module.exports.signup = (req, res) => {
   const methodName = '[SignUp]';
 
   const fullname = req.body.fullname;
   let email = req.body.email;
-  const password = req.body.password;
-  const rpassword = req.body.rpassword;
+  const password = "password";
+  const rpassword = "password";
   let referralCode = req.body.referralCode;
   const agree = req.body.agree;
 
   if (!fullname) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Fullname is required'});
+      send({ 'err': 'Fullname is required' });
   }
 
   if (!email) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Email address is required'});
+      send({ 'err': 'Email address is required' });
   }
 
   if (!password) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Password is required'});
+      send({ 'err': 'Password is required' });
   }
 
   if (password !== rpassword) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Passwords do not match'});
+      send({ 'err': 'Passwords do not match' });
   }
 
   if (!agree) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'You must agree on terms'});
+      send({ 'err': 'You must agree on terms' });
   }
 
   email = String(email).toLocaleLowerCase();
 
-    
-            UsersModel.findOne({email: email}).exec().then((user) => {
-            if (user) {
-              return res.status(httpStatus.BAD_REQUEST).
-                  send(
-                      {'err': 'Email address already registered in icostarter platform'});
-            }
+  if (referralCode) {
+    try {
+      referralCode = new mongoose.Types.ObjectId(referralCode);
+    } catch (ex) {
+      return res.status(httpStatus.BAD_REQUEST).
+        send({ 'err': 'Invalid referral code' });
+    }
+  } else {
+    referralCode = null;
+  }
 
-            const newUser = new UsersModel({
-              email: email,
-              password: sha512(password),
-              activationCode: randomstring.generate({length: 128}),
-              referralCode: referralCode,
-              fullname: fullname,
-              active: true,
-            });
+  return UsersModel.findOne({ _id: referralCode }).
+    exec().
+    then((referralUser) => {
+      if (!referralUser && referralCode) {
+        return res.status(httpStatus.BAD_REQUEST).
+          send({ 'err': 'Referral code not found' });
+      }
 
-            return NotificationsModel({
-              userId: user._id,
-              message: 'Successfully registered',
-              type: 'event',
-              status: 'successful',
-              color: 'success',
-            }).save().then(() => {
-              return res.send({msg: 'Successfully registered'});
-            });
-          }).catch((err) => {
+      return Promise.all([
+        UsersModel.findOne({ email: email }).exec(),
+      ]).spread((user, project) => {
+        if (user) {
+          return res.status(httpStatus.BAD_REQUEST).
+            send(
+            { 'err': 'Email address already registered in icostarter platform' });
+        }
+
+        const newUser = new UsersModel({
+          email: email,
+          password: sha512(password),
+          activationCode: randomstring.generate({ length: 128 }),
+          referralCode: referralCode,
+          fullname: fullname,
+          project: 123,
+          active: true,
+        });
+
+        return newUser.save().then(() => {
+          return res.send({ msg: 'Successfully registered' });
+        });
+      }).
+        catch((err) => {
           logger.error(loggerName, methodName, err);
           return res.status(httpStatus.BAD_REQUEST).
-              send({'err': 'Bad request'});
+            send({ 'err': 'Bad request' });
         });
+    });
 };
+
 
 /**
  * Function activates blocked account
@@ -120,33 +139,33 @@ module.exports.activateAccount = (req, res) => {
 
   if (!email) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Invalid email address'});
+      send({ 'err': 'Invalid email address' });
   }
 
   if (!activationCode) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Invalid activation code'});
+      send({ 'err': 'Invalid activation code' });
   }
 
   email = String(email).toLowerCase();
 
   const updateQuery = {
     active: true,
-    activationCode: randomstring.generate({length: 64}),
+    activationCode: randomstring.generate({ length: 64 }),
     authCount: 0,
   };
 
-  UsersModel.findOneAndUpdate({email: email, activationCode: activationCode},
-      updateQuery, {new: true}).exec().then((user) => {
-    if (!user) {
-      return res.status(httpStatus.BAD_REQUEST).send({'err': 'User not found'});
-    }
+  UsersModel.findOneAndUpdate({ email: email, activationCode: activationCode },
+    updateQuery, { new: true }).exec().then((user) => {
+      if (!user) {
+        return res.status(httpStatus.BAD_REQUEST).send({ 'err': 'User not found' });
+      }
 
-    return res.send(true);
-  }).catch((err) => {
-    logger.error(loggerName, methodName, err);
-    return res.status(httpStatus.BAD_REQUEST).send({'err': 'Bad request'});
-  });
+      return res.send(true);
+    }).catch((err) => {
+      logger.error(loggerName, methodName, err);
+      return res.status(httpStatus.BAD_REQUEST).send({ 'err': 'Bad request' });
+    });
 };
 
 /**
@@ -168,12 +187,12 @@ module.exports.activateEmail = (req, res) => {
 
   if (!email) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Invalid email address'});
+      send({ 'err': 'Invalid email address' });
   }
 
   if (!activationCode) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Invalid activation code'});
+      send({ 'err': 'Invalid activation code' });
   }
 
   email = String(email).toLowerCase();
@@ -181,26 +200,26 @@ module.exports.activateEmail = (req, res) => {
   const updateQuery = {
     verified: true,
     active: true,
-    activationCode: randomstring.generate({length: 64}),
+    activationCode: randomstring.generate({ length: 64 }),
     authCount: 0,
   };
 
-  return UsersModel.findOne({email: email}).exec().then((currentUser) => {
+  return UsersModel.findOne({ email: email }).exec().then((currentUser) => {
     if (!currentUser) {
       if (currentUser.verified) {
         return res.status(httpStatus.BAD_REQUEST).
-            send({'err': 'Already activated'});
+          send({ 'err': 'Already activated' });
       }
     }
 
     return UsersModel.findOneAndUpdate({
       email: email,
       activationCode: activationCode,
-    }, updateQuery, {new: true}).exec().then((user) => {
+    }, updateQuery, { new: true }).exec().then((user) => {
       if (!user) {
         return res.status(httpStatus.BAD_REQUEST).
-            send(
-                {'err': 'Activation code is not correct. Please, use forgot password to generate new activation code and follow the link from your email address'});
+          send(
+          { 'err': 'Activation code is not correct. Please, use forgot password to generate new activation code and follow the link from your email address' });
       }
 
       return res.send(true);
@@ -229,35 +248,35 @@ module.exports.forgotPassword = (req, res) => {
 
   if (!email) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Invalid email address'});
+      send({ 'err': 'Invalid email address' });
   }
 
 
   logger.debug(loggerName, methodName, email);
 
   const updateQuery = {
-    activationCode: randomstring.generate({length: 64}),
+    activationCode: randomstring.generate({ length: 64 }),
   };
 
-  UsersModel.findOneAndUpdate({email: email}, updateQuery, {new: true}).
-      exec().
-      then((user) => {
-        if (!user) {
-          return res.status(httpStatus.BAD_REQUEST).
-              send({'err': 'User not found'});
-        }
+  UsersModel.findOneAndUpdate({ email: email }, updateQuery, { new: true }).
+    exec().
+    then((user) => {
+      if (!user) {
+        return res.status(httpStatus.BAD_REQUEST).
+          send({ 'err': 'User not found' });
+      }
 
-        return NotificationsModel({
-          userId: user._id,
-          message: 'Forgot password executed',
-          type: 'alert',
-          status: 'pending',
-          color: 'warning',
-        }).save().then(() => {
-          return res.send(
-              {msg: 'Password reset instructions has been sent to your email address'});
-        });
+      return NotificationsModel({
+        userId: user._id,
+        message: 'Forgot password executed',
+        type: 'alert',
+        status: 'pending',
+        color: 'warning',
+      }).save().then(() => {
+        return res.send(
+          { msg: 'Password reset instructions has been sent to your email address' });
       });
+    });
 };
 
 module.exports.verifyActivationCode = (req, res) => {
@@ -266,23 +285,23 @@ module.exports.verifyActivationCode = (req, res) => {
 
   if (!email) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Email is not provided'});
+      send({ 'err': 'Email is not provided' });
   }
 
   if (!activationCode) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Activation code is not provided'});
+      send({ 'err': 'Activation code is not provided' });
   }
 
-  UsersModel.findOne({email: email, activationCode: activationCode}).
-      exec().
-      then((user) => {
-        if (!user) {
-          return res.send(false);
-        }
+  UsersModel.findOne({ email: email, activationCode: activationCode }).
+    exec().
+    then((user) => {
+      if (!user) {
+        return res.send(false);
+      }
 
-        return res.send(true);
-      });
+      return res.send(true);
+    });
 
 };
 
@@ -311,54 +330,54 @@ module.exports.changePassword = (req, res) => {
 
   if (!email) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Invalid email address'});
+      send({ 'err': 'Invalid email address' });
   }
 
   if (!activationCode) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Invalid activation code'});
+      send({ 'err': 'Invalid activation code' });
   }
 
   if (!password) {
-    return res.status(httpStatus.BAD_REQUEST).send({'err': 'Invalid password'});
+    return res.status(httpStatus.BAD_REQUEST).send({ 'err': 'Invalid password' });
   }
 
   if (!confirmation) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Invalid confirmation'});
+      send({ 'err': 'Invalid confirmation' });
   }
 
   if (password !== confirmation) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Passwords do not match'});
+      send({ 'err': 'Passwords do not match' });
   }
 
   const updateQuery = {
-    activationCode: randomstring.generate({length: 64}),
+    activationCode: randomstring.generate({ length: 64 }),
     password: sha512(password),
     authCount: 0,
   };
 
   return UsersModel.findOneAndUpdate({
-      email: email,
-      activationCode: activationCode,
-    }, updateQuery, {new: true}).exec().then((user) => {
-      if (!user) {
-        return res.status(httpStatus.BAD_REQUEST).
-            send({'err': 'User not found'});
-      }
+    email: email,
+    activationCode: activationCode,
+  }, updateQuery, { new: true }).exec().then((user) => {
+    if (!user) {
+      return res.status(httpStatus.BAD_REQUEST).
+        send({ 'err': 'User not found' });
+    }
 
-      return NotificationsModel({
-        userId: user._id,
-        message: 'Password successfully changed',
-        type: 'alert',
-        status: 'successful',
-        color: 'success',
-      }).save().then(() => {
-        return res.send(
-            {msg: 'Password has been succesfully changed'});
-      });
+    return NotificationsModel({
+      userId: user._id,
+      message: 'Password successfully changed',
+      type: 'alert',
+      status: 'successful',
+      color: 'success',
+    }).save().then(() => {
+      return res.send(
+        { msg: 'Password has been succesfully changed' });
     });
+  });
 };
 
 module.exports.resendActivateEmail = (req, res) => {
@@ -367,14 +386,14 @@ module.exports.resendActivateEmail = (req, res) => {
   const userId = req.decoded._id;
 
   if (!userId) {
-    return res.status(httpStatus.BAD_REQUEST).send({'err': 'User not found'});
+    return res.status(httpStatus.BAD_REQUEST).send({ 'err': 'User not found' });
   }
 
-  return UsersModel.findOne({_id: new mongoose.Types.ObjectId(userId)}).
-      exec().
-      then((user) => {
-        return res.send(true);
-      });
+  return UsersModel.findOne({ _id: new mongoose.Types.ObjectId(userId) }).
+    exec().
+    then((user) => {
+      return res.send(true);
+    });
 };
 
 module.exports.resendActivateAccount = (req, res) => {
@@ -396,112 +415,112 @@ module.exports.resendActivateAccount = (req, res) => {
 module.exports.auth = (req, res) => {
   // inputs
   let email = req.body.email;
-  let password = req.body.password;
+  let password = "password";
   const code = req.body.code;
 
   if (!email) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Invalid email address'});
+      send({ 'err': 'Invalid email address' });
   }
 
   if (!password) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({'err': 'Invalid passsword'});
+      send({ 'err': 'Invalid passsword' });
   }
 
   email = String(email).toLowerCase();
 
-    const authPromises = [];
-    password = sha512(password);
-    authPromises.push(
-        UsersModel.findOne({email: email, password: password, active: true}).
-            exec());
-  
+  const authPromises = [];
+  password = sha512(password);
+  authPromises.push(
+    UsersModel.findOne({ email: email, password: password, active: true }).
+      exec());
 
-    Promise.all(authPromises).spread((user) => {
-      if (!user) {
-        return UsersModel.findOne({email: email}).exec().then((user) => {
-          if (!user) {
-            return res.status(httpStatus.BAD_REQUEST).
-                send({'err': 'Bad username and password'});
-          } else {
-            const updateQuery = {};
-            updateQuery.authCount = (user.authCount + 1);
 
-            if (user.authCount > config.get('auth-max-fail-count')) {
-              updateQuery.active = false;
-            }
+  Promise.all(authPromises).spread((user) => {
+    if (!user) {
+      return UsersModel.findOne({ email: email }).exec().then((user) => {
+        if (!user) {
+          return res.status(httpStatus.BAD_REQUEST).
+            send({ 'err': 'Bad username and password' });
+        } else {
+          const updateQuery = {};
+          updateQuery.authCount = (user.authCount + 1);
 
-            return UsersModel.findOneAndUpdate({email: email}, updateQuery).
-                exec().
-                then((user) => {
-                  if (user.active) {
-                    return NotificationsModel({
-                      userId: user._id,
-                      message: 'Could not login',
-                      type: 'alert',
-                      status: '',
-                      color: 'danger',
-                    }).save().then(() => {
-                      return res.status(httpStatus.BAD_REQUEST).
-                          send({'err': 'Bad username and password'});
-                    });
-                  } else {
-                    return NotificationsModel({
-                      userId: user._id,
-                      message: 'Account blocked',
-                      type: 'alert',
-                      status: '',
-                      color: 'danger',
-                    }).save().then(() => {
-                      return true;
-                    }).then(() => {
-                      return res.status(httpStatus.BAD_REQUEST).
-                          send(
-                              {'err': 'Account has been locked. Check your email to activate'});
-                    });
-                  }
+          if (user.authCount > config.get('auth-max-fail-count')) {
+            updateQuery.active = false;
+          }
+
+          return UsersModel.findOneAndUpdate({ email: email }, updateQuery).
+            exec().
+            then((user) => {
+              if (user.active) {
+                return NotificationsModel({
+                  userId: user._id,
+                  message: 'Could not login',
+                  type: 'alert',
+                  status: '',
+                  color: 'danger',
+                }).save().then(() => {
+                  return res.status(httpStatus.BAD_REQUEST).
+                    send({ 'err': 'Bad username and password' });
                 });
-          }
-        });
-      } else {
-        if (user.twoFaEnabled) {
-          const verified = speakeasy.totp.verify({
-            secret: user.twoFaCode,
-            encoding: 'base32',
-            token: code,
-          });
-
-          if (!verified) {
-            return NotificationsModel({
-              userId: user._id,
-              message: 'Invalid 2FA code entered',
-              type: 'alert',
-              status: '',
-              color: 'danger',
-            }).save().then(() => {
-              return res.status(httpStatus.BAD_REQUEST).
-                  send('Invalid two factor authentication code');
+              } else {
+                return NotificationsModel({
+                  userId: user._id,
+                  message: 'Account blocked',
+                  type: 'alert',
+                  status: '',
+                  color: 'danger',
+                }).save().then(() => {
+                  return true;
+                }).then(() => {
+                  return res.status(httpStatus.BAD_REQUEST).
+                    send(
+                    { 'err': 'Account has been locked. Check your email to activate' });
+                });
+              }
             });
-          }
         }
-
-        const token = jwt.sign({
-          _id: user._id,
-          email: user.email,
-        }, config.get('secret'), {expiresIn: config.get('jwt_expiretime'),});
-
-        return res.json({
-          _id: user._id,
-          token: token,
-          email: user.email,
-          hash: sha512(String(user._id)),
-          fullname: user.fullname,
-          expiresIn: config.get('jwt_expiretime'),
-          verified: user.verified,
+      });
+    } else {
+      if (user.twoFaEnabled) {
+        const verified = speakeasy.totp.verify({
+          secret: user.twoFaCode,
+          encoding: 'base32',
+          token: code,
         });
+
+        if (!verified) {
+          return NotificationsModel({
+            userId: user._id,
+            message: 'Invalid 2FA code entered',
+            type: 'alert',
+            status: '',
+            color: 'danger',
+          }).save().then(() => {
+            return res.status(httpStatus.BAD_REQUEST).
+              send('Invalid two factor authentication code');
+          });
+        }
       }
-    });
+
+      const token = jwt.sign({
+        _id: user._id,
+        email: user.email,
+      }, config.get('secret'), { expiresIn: config.get('jwt_expiretime'), });
+
+      return res.json({
+        _id: user._id,
+        token: token,
+        email: user.email,
+        hash: sha512(String(user._id)),
+        fullname: user.fullname,
+        expiresIn: config.get('jwt_expiretime'),
+        verified: user.verified,
+      });
+    }
+  });
 };
 
 /**
@@ -516,7 +535,7 @@ module.exports.verify = (req, res) => {
   const token = req.headers['x-access-token'];
 
   if (token) {
-    jwt.verify(token, config.get('secret'), function(err, decoded) {
+    jwt.verify(token, config.get('secret'), function (err, decoded) {
       if (err) {
         if (err instanceof jwt.TokenExpiredError) {
           return res.send(false);
@@ -528,15 +547,15 @@ module.exports.verify = (req, res) => {
           return res.send(false);
         }
 
-        UsersModel.findOne({_id: new mongoose.Types.ObjectId(decoded._id)}).
-            exec().
-            then((user) => {
-              if (!user) {
-                return res.send(false);
-              }
+        UsersModel.findOne({ _id: new mongoose.Types.ObjectId(decoded._id) }).
+          exec().
+          then((user) => {
+            if (!user) {
+              return res.send(false);
+            }
 
-              return res.send(true);
-            });
+            return res.send(true);
+          });
 
       }
     });

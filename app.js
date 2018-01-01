@@ -19,6 +19,7 @@ const bankRouter = require('./routes/bankRouter');
 const governmentRouter = require('./routes/governmentRouter');
 const insuranceRouter = require('./routes/insuranceRouter');
 const sellerRouter = require('./routes/sellerRouter');
+const authRouter = require('./routes/authRouter');
 const app = express();
 
 app.use(morgan);
@@ -45,6 +46,7 @@ const API = '/api/v1/';
 app.use(API + 'support', supportRouter);
 app.use(API + 'notification', notificationRouter);
 app.use(API + 'seller', sellerRouter);
+app.use(API + 'auth', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
