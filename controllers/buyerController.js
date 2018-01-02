@@ -20,7 +20,7 @@ module.exports.buy = (req, res) => {
 
   if (!hash || !buyer) {
     return res.status(httpStatus.BAD_REQUEST).
-        send({err: 'Invalid input paramteres'});
+      send({ err: 'Invalid input paramteres' });
   }
 
   return res.send({
@@ -125,6 +125,28 @@ module.exports.acceptOfferFromInsurance = (req, res) => {
     status: 'INSURANCE_OFFER_ACCEPTED',
     chaincodeAddress: '1231'
   });
+}
 
 
+
+/**
+ *
+ * @param req
+ * @param res
+ *
+ */
+module.exports.getAllAssets4Sale = (req, res) => {
+  return res.send([{
+    hash: '123',
+    address: "711-2880 Nulla St. Mankato Mississippi 96522",
+    price: 1000000,
+    sellerIdnumber: '300019239'
+  },
+  {
+    hash: '111',
+    address: "P.O. Box 283 8562 Fusce Rd. Azusa New York 39531",
+    price: 2000000,
+    sellerIdnumber: '201327616'
+  }
+  ]);
 };
