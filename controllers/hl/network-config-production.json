@@ -1,42 +1,144 @@
 {
 	"network-config": {
 		"orderer": {
-			"url": "grpcs://81.171.29.169:7050",
-			"server-hostname": "orderer.example.com",
-			"tls_cacerts": "../../../artifacts/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt"
+			"url": "grpcs://orderer.homelend.io:7050",
+			"server-hostname": "orderer.homelend.io",
+			"tls_cacerts": "../../artifacts/crypto-config/ordererOrganizations/homelend.io/orderers/orderer.homelend.io/tls/ca.crt"
 		},
-		"org_tristar": {
-			"name": "peerOrgTristar",
-			"mspid": "OrgTristarMSP",
-			"ca": "https://81.171.29.169:7054",
+		"org_pocbank": {
+			"name": "peerPOCBank",
+			"mspid": "POCBankMSP",
+			"ca": "https://ca.pocbank.homelend.io:7054",
 			"peer0": {
-				"requests": "grpcs://81.171.29.169:7051",
-				"events": "grpcs://81.171.29.169:7053",
-				"server-hostname": "peer0.org_tristar.example.com",
-				"tls_cacerts": "../../../artifacts/crypto-config/peerOrganizations/org_tristar.example.com/peers/peer0.org_tristar.example.com/tls/ca.crt"
+				"requests": "grpcs://peer0.pocbank.homelend.io:7051",
+				"events": "grpcs://peer0.pocbank.homelend.io:7053",
+				"server-hostname": "peer0.pocbank.homelend.io",
+				"tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocbank.homelend.io/peers/peer0.pocbank.homelend.io/tls/ca.crt"
 			},
 			"admin": {
 				"username": "admin",
 				"secret": "adminpw",
-				"key": "../artifacts/crypto-config/peerOrganizations/org_tristar.example.com/users/Admin@org_tristar.example.com/msp/keystore",
-				"cert": "../artifacts/crypto-config/peerOrganizations/org_tristar.example.com/users/Admin@org_tristar.example.com/msp/signcerts"
+				"key": "../../artifacts/crypto-config/peerOrganizations/pocbank.homelend.io/users/Admin@pocbank.homelend.io/msp/keystore",
+				"cert": "../../artifacts/crypto-config/peerOrganizations/pocbank.homelend.io/users/Admin@pocbank.homelend.io/msp/signcerts"
 			}
 		},
-		"org_enoc": {
-			"name": "peerOrgEnoc",
-			"mspid": "OrgEnocMSP",
-			"ca": "https://81.171.29.169:8054",
+		"org_pocinsurance": {
+			"name": "peerPOCInsurance",
+			"mspid": "POCInsuranceMSP",
+			"ca": "https://ca.pocinsurance.homelend.io:7054",
 			"peer0": {
-				"requests": "grpcs://81.171.29.169:8051",
-				"events": "grpcs://81.171.29.169:8053",
-				"server-hostname": "peer0.org_enoc.example.com",
-				"tls_cacerts": "../../../artifacts/crypto-config/peerOrganizations/org_enoc.example.com/peers/peer0.org_enoc.example.com/tls/ca.crt"
+				"requests": "grpcs://peer0.pocinsurance.homelend.io:7051",
+				"events": "grpcs://peer0.pocinsurance.homelend.io:7053",
+				"server-hostname": "peer0.pocinsurance.homelend.io",
+				"tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocinsurance.homelend.io/peers/peer0.pocinsurance.homelend.io/tls/ca.crt"
 			},
 			"admin": {
 				"username": "admin",
 				"secret": "adminpw",
-				"key": "../artifacts/crypto-config/peerOrganizations/org_enoc.example.com/users/Admin@org_enoc.example.com/msp/keystore",
-				"cert": "../artifacts/crypto-config/peerOrganizations/org_enoc.example.com/users/Admin@org_enoc.example.com/msp/signcerts"
+				"key": "../../artifacts/crypto-config/peerOrganizations/pocinsurance.homelend.io/users/Admin@pocinsurance.homelend.io/msp/keystore",
+				"cert": "../../artifacts/crypto-config/peerOrganizations/pocinsurance.homelend.io/users/Admin@pocinsurance.homelend.io/msp/signcerts"
+			}
+		},
+		"org_pocappraiser": {
+			"name": "peerPOCAppraiser",
+			"mspid": "POCAppraiserMSP",
+			"ca": "https://ca.pocappraiser.homelend.io:7054",
+			"peer0": {
+				"requests": "grpcs://peer0.pocappraiser.homelend.io:7051",
+				"events": "grpcs://peer0.pocappraiser.homelend.io:7053",
+				"server-hostname": "peer0.pocappraiser.homelend.io",
+				"tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocappraiser.homelend.io/peers/peer0.pocappraiser.homelend.io/tls/ca.crt"
+			},
+			"admin": {
+				"username": "admin",
+				"secret": "adminpw",
+				"key": "../../artifacts/crypto-config/peerOrganizations/pocappraiser.homelend.io/users/Admin@pocappraiser.homelend.io/msp/keystore",
+				"cert": "../../artifacts/crypto-config/peerOrganizations/pocappraiser.homelend.io/users/Admin@pocappraiser.homelend.io/msp/signcerts"
+			}
+		},
+		"org_pocgovernment": {
+			"name": "peerPOCGovernment",
+			"mspid": "POCGovernmentMSP",
+			"ca": "https://ca.pocgovernment.homelend.io:7054",
+			"peer0": {
+				"requests": "grpcs://peer0.pocgovernment.homelend.io:7051",
+				"events": "grpcs://peer0.pocgovernment.homelend.io:7053",
+				"server-hostname": "peer0.pocgovernment.homelend.io",
+				"tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocgovernment.homelend.io/peers/peer0.pocgovernment.homelend.io/tls/ca.crt"
+			},
+			"admin": {
+				"username": "admin",
+				"secret": "adminpw",
+				"key": "../../artifacts/crypto-config/peerOrganizations/pocgovernment.homelend.io/users/Admin@pocgovernment.homelend.io/msp/keystore",
+				"cert": "../../artifacts/crypto-config/peerOrganizations/pocgovernment.homelend.io/users/Admin@pocgovernment.homelend.io/msp/signcerts"
+			}
+		},
+		"org_pocbuyer": {
+			"name": "peerPOCBuyer",
+			"mspid": "POCBuyerMSP",
+			"ca": "https://ca.pocbuyer.homelend.io:7054",
+			"peer0": {
+				"requests": "grpcs://peer0.pocbuyer.homelend.io:7051",
+				"events": "grpcs://peer0.pocbuyer.homelend.io:7053",
+				"server-hostname": "peer0.pocbuyer.homelend.io",
+				"tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocbuyer.homelend.io/peers/peer0.pocbuyer.homelend.io/tls/ca.crt"
+			},
+			"admin": {
+				"username": "admin",
+				"secret": "adminpw",
+				"key": "../../artifacts/crypto-config/peerOrganizations/pocbuyer.homelend.io/users/Admin@pocbuyer.homelend.io/msp/keystore",
+				"cert": "../../artifacts/crypto-config/peerOrganizations/pocbuyer.homelend.io/users/Admin@pocbuyer.homelend.io/msp/signcerts"
+			}
+		},
+		"org_pocseller": {
+			"name": "peerPOCSeller",
+			"mspid": "POCSellerMSP",
+			"ca": "https://ca.pocseller.homelend.io:7054",
+			"peer0": {
+				"requests": "grpcs://peer0.pocseller.homelend.io:7051",
+				"events": "grpcs://peer0.pocseller.homelend.io:7053",
+				"server-hostname": "peer0.pocseller.homelend.io",
+				"tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/peers/peer0.pocseller.homelend.io/tls/ca.crt"
+			},
+			"admin": {
+				"username": "admin",
+				"secret": "adminpw",
+				"key": "../../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/users/Admin@pocseller.homelend.io/msp/keystore",
+				"cert": "../../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/users/Admin@pocseller.homelend.io/msp/signcerts"
+			}
+		},
+		"org_poccreditratingagency": {
+			"name": "peerPOCCreditRatingAgency",
+			"mspid": "POCCreditRatingAgencyMSP",
+			"ca": "https://ca.poccreditratingagency.homelend.io:7054",
+			"peer0": {
+				"requests": "grpcs://peer0.poccreditratingagency.homelend.io:7051",
+				"events": "grpcs://peer0.poccreditratingagency.homelend.io:7053",
+				"server-hostname": "peer0.poccreditratingagency.homelend.io",
+				"tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/poccreditratingagency.homelend.io/peers/peer0.poccreditratingagency.homelend.io/tls/ca.crt"
+			},
+			"admin": {
+				"username": "admin",
+				"secret": "adminpw",
+				"key": "../../artifacts/crypto-config/peerOrganizations/poccreditratingagency.homelend.io/users/Admin@poccreditratingagency.homelend.io/msp/keystore",
+				"cert": "../../artifacts/crypto-config/peerOrganizations/poccreditratingagency.homelend.io/users/Admin@poccreditratingagency.homelend.io/msp/signcerts"
+			}
+		},
+		"pochomelend": {
+			"name": "peerPOCHomelend",
+			"mspid": "POCHomelendMSP",
+			"ca": "https://ca.pochomelend.homelend.io:7054",
+			"peer0": {
+				"requests": "grpcs://peer0.pochomelend.homelend.io:7051",
+				"events": "grpcs://peer0.pochomelend.homelend.io:7053",
+				"server-hostname": "peer0.pochomelend.homelend.io",
+				"tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pochomelend.homelend.io/peers/peer0.pochomelend.homelend.io/tls/ca.crt"
+			},
+			"admin": {
+				"username": "admin",
+				"secret": "adminpw",
+				"key": "../../artifacts/crypto-config/peerOrganizations/pochomelend.homelend.io/users/Admin@pochomelend.homelend.io/msp/keystore",
+				"cert": "../../artifacts/crypto-config/peerOrganizations/pochomelend.homelend.io/users/Admin@pochomelend.homelend.io/msp/signcerts"
 			}
 		}
 	}

@@ -5,7 +5,7 @@
       "server-hostname": "orderer.homelend.io",
       "tls_cacerts": "../../artifacts/crypto-config/ordererOrganizations/homelend.io/orderers/orderer.homelend.io/tls/ca.crt"
     },
-    "pocbank": {
+    "org_pocbank": {
       "name": "peerPOCBank",
       "mspid": "POCBankMSP",
       "ca": "https://ca.pocbank.homelend.io:7054",
@@ -22,7 +22,7 @@
         "cert": "../../artifacts/crypto-config/peerOrganizations/pocbank.homelend.io/users/Admin@pocbank.homelend.io/msp/signcerts"
       }
     },
-    "pocinsurance": {
+    "org_pocinsurance": {
       "name": "peerPOCInsurance",
       "mspid": "POCInsuranceMSP",
       "ca": "https://ca.pocinsurance.homelend.io:7054",
@@ -39,7 +39,7 @@
         "cert": "../../artifacts/crypto-config/peerOrganizations/pocinsurance.homelend.io/users/Admin@pocinsurance.homelend.io/msp/signcerts"
       }
     },
-    "pocappraiser": {
+    "org_pocappraiser": {
       "name": "peerPOCAppraiser",
       "mspid": "POCAppraiserMSP",
       "ca": "https://ca.pocappraiser.homelend.io:7054",
@@ -56,7 +56,7 @@
         "cert": "../../artifacts/crypto-config/peerOrganizations/pocappraiser.homelend.io/users/Admin@pocappraiser.homelend.io/msp/signcerts"
       }
     },
-    "pocgovernment": {
+    "org_pocgovernment": {
       "name": "peerPOCGovernment",
       "mspid": "POCGovernmentMSP",
       "ca": "https://ca.pocgovernment.homelend.io:7054",
@@ -73,7 +73,7 @@
         "cert": "../../artifacts/crypto-config/peerOrganizations/pocgovernment.homelend.io/users/Admin@pocgovernment.homelend.io/msp/signcerts"
       }
     },
-    "pocbuyer": {
+    "org_pocbuyer": {
       "name": "peerPOCBuyer",
       "mspid": "POCBuyerMSP",
       "ca": "https://ca.pocbuyer.homelend.io:7054",
@@ -90,7 +90,7 @@
         "cert": "../../artifacts/crypto-config/peerOrganizations/pocbuyer.homelend.io/users/Admin@pocbuyer.homelend.io/msp/signcerts"
       }
     },
-    "pocseller": {
+    "org_pocseller": {
       "name": "peerPOCSeller",
       "mspid": "POCSellerMSP",
       "ca": "https://ca.pocseller.homelend.io:7054",
@@ -103,11 +103,11 @@
       "admin": {
         "username": "admin",
         "secret": "adminpw",
-        "key": "../../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/users/Admin@pocseller.homelend.io/msp/keystore",
-        "cert": "../../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/users/Admin@pocseller.homelend.io/msp/signcerts"
+        "key": "../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/users/Admin@pocseller.homelend.io/msp/keystore",
+        "cert": "../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/users/Admin@pocseller.homelend.io/msp/signcerts"
       }
     },
-    "poccreditratingagency": {
+    "org_poccreditratingagency": {
       "name": "peerPOCCreditRatingAgency",
       "mspid": "POCCreditRatingAgencyMSP",
       "ca": "https://ca.poccreditratingagency.homelend.io:7054",

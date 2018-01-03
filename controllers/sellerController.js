@@ -37,10 +37,10 @@ module.exports.advertise = (req, res) => {
 
     // io.to('propertiesList room').emit('propertiesList', buyerController.fetchAssetsForSale());
 
-    invokeChaincode.invokeChaincode('', config.get('channelName'), config.get('lending_chaincode'), 'advertise', [JSON.stringify(body)], 'admin', 'pocseller').then((response) => {
+    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'advertise', [JSON.stringify(body)], 'admin', 'org_pocseller').then((response) => {
         return res.send(response);
     }).catch((err) => {
-        console.log();
+        console.log(err);
     });
 
 };

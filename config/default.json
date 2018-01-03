@@ -27,5 +27,15 @@
   "pocbuyer_url": "peer0.pocbuyer.homelend.io",
   "pocseller_url": "peer0.pocseller.homelend.io",
   "poccreditratingagency_url": "peer0.poccreditratingagency.homelend.io",
-  "pochomelend_url": "peer0.pochomelend.homelend.io"
+  "pochomelend_url": "peer0.pochomelend.homelend.io",
+  "orderer":"grpcs://orderer.homelend.io:7050",
+  "CC_SRC_PATH":"../../artifacts",
+  "keyValueStore":"/tmp/fabric-client-kvs",
+  "eventWaitTime":"30000",
+  "admins":[
+    {
+      "username":"admin",
+      "secret":"adminpw"
+    }
+  ]
 }

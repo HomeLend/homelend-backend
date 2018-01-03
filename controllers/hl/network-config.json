@@ -1,0 +1,28 @@
+{
+  "network-config": {
+    "orderer": {
+      "url": "grpcs://orderer.homelend.io:7050",
+      "server-hostname": "orderer.homelend.io",
+      "tls_cacerts": "../../artifacts/crypto-config/ordererOrganizations/homelend.io/orderers/orderer.homelend.io/tls/ca.crt"
+    },
+    "org_pocseller": {
+      "name": "peerPOCSeller",
+      "mspid": "POCSellerMSP",
+      "ca": "https://ca.pocseller.homelend.io:7054",
+      "peers": {
+        "peer0": {
+          "requests": "grpcs://peer0.pocseller.homelend.io:7051",
+          "events": "grpcs://peer0.pocseller.homelend.io:7053",
+          "server-hostname": "peer0.pocseller.homelend.io",
+          "tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/peers/peer0.pocseller.homelend.io/tls/ca.crt"
+        }
+      },
+      "admin": {
+        "username": "admin",
+        "secret": "adminpw",
+        "key": "../../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/users/Admin@pocseller.homelend.io/msp/keystore",
+        "cert": "../../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/users/Admin@pocseller.homelend.io/msp/signcerts"
+      }
+    }
+  }
+}
