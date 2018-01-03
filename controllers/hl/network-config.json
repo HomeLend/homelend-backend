@@ -8,7 +8,7 @@
     "org_pocseller": {
       "name": "peerPOCSeller",
       "mspid": "POCSellerMSP",
-      "ca": "https://ca.pocseller.homelend.io:7054",
+      "ca": "http://ca.pocseller.homelend.io:7054",
       "peers": {
         "peer0": {
           "requests": "grpcs://peer0.pocseller.homelend.io:7051",

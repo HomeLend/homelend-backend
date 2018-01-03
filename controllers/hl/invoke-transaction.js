@@ -36,6 +36,7 @@ var invokeChaincode = function(peerNames, channelName, chaincodeName, fcn, args,
         // send proposal to endorser
         var request = {
             chaincodeId: chaincodeName,
+            chaincodeVersion:'v1',
             fcn: fcn,
             args: args,
             chainId: channelName,
