@@ -1,0 +1,43 @@
+{
+	"network-config": {
+		"orderer": {
+			"url": "grpcs://81.171.29.169:7050",
+			"server-hostname": "orderer.example.com",
+			"tls_cacerts": "../../../artifacts/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt"
+		},
+		"org_tristar": {
+			"name": "peerOrgTristar",
+			"mspid": "OrgTristarMSP",
+			"ca": "https://81.171.29.169:7054",
+			"peer0": {
+				"requests": "grpcs://81.171.29.169:7051",
+				"events": "grpcs://81.171.29.169:7053",
+				"server-hostname": "peer0.org_tristar.example.com",
+				"tls_cacerts": "../../../artifacts/crypto-config/peerOrganizations/org_tristar.example.com/peers/peer0.org_tristar.example.com/tls/ca.crt"
+			},
+			"admin": {
+				"username": "admin",
+				"secret": "adminpw",
+				"key": "../artifacts/crypto-config/peerOrganizations/org_tristar.example.com/users/Admin@org_tristar.example.com/msp/keystore",
+				"cert": "../artifacts/crypto-config/peerOrganizations/org_tristar.example.com/users/Admin@org_tristar.example.com/msp/signcerts"
+			}
+		},
+		"org_enoc": {
+			"name": "peerOrgEnoc",
+			"mspid": "OrgEnocMSP",
+			"ca": "https://81.171.29.169:8054",
+			"peer0": {
+				"requests": "grpcs://81.171.29.169:8051",
+				"events": "grpcs://81.171.29.169:8053",
+				"server-hostname": "peer0.org_enoc.example.com",
+				"tls_cacerts": "../../../artifacts/crypto-config/peerOrganizations/org_enoc.example.com/peers/peer0.org_enoc.example.com/tls/ca.crt"
+			},
+			"admin": {
+				"username": "admin",
+				"secret": "adminpw",
+				"key": "../artifacts/crypto-config/peerOrganizations/org_enoc.example.com/users/Admin@org_enoc.example.com/msp/keystore",
+				"cert": "../artifacts/crypto-config/peerOrganizations/org_enoc.example.com/users/Admin@org_enoc.example.com/msp/signcerts"
+			}
+		}
+	}
+}

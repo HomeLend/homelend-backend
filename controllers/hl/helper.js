@@ -1,8 +1,8 @@
 'use strict';
 const log4js = require('log4js');
 const logger = log4js.getLogger('Helper');
-logger.setLevel('DEBUG');
-
+// logger.setLevel('DEBUG');
+const config = require('config');
 const path = require('path');
 const util = require('util');
 const fs = require('fs-extra');
@@ -11,6 +11,7 @@ const crypto = require('crypto');
 const copService = require('fabric-ca-client');
 
 const hfc = require('fabric-client');
+hfc.addConfigFile(path.join(__dirname, config.network_config_file + ".json"));
 hfc.setLogger(logger);
 const ORGS = hfc.getConfigSetting('network-config');
 
@@ -18,11 +19,11 @@ const clients = {};
 const channels = {};
 const caClients = {};
 
-const sleep = async function (sleep_time_ms) {
+const sleep = function (sleep_time_ms) {
 	return new Promise(resolve => setTimeout(resolve, sleep_time_ms));
 }
 
-async function getClientForOrg (userorg, username) {
+function getClientForOrg (userorg, username) {
 	logger.debug('getClientForOrg - ****** START %s %s', userorg, username)
 	// get a fabric client loaded with a connection profile for this org
 	let config = '-connection-profile-path';
@@ -40,14 +41,14 @@ async function getClientForOrg (userorg, username) {
 
 	// this will create both the state store and the crypto store based
 	// on the settings in the client section of the connection profile
-	await client.initCredentialStores();
+	client.initCredentialStores();
 
 	// The getUserContext call tries to get the user from persistence.
 	// If the user has been saved to persistence then that means the user has
 	// been registered and enrolled. If the user is found in persistence
 	// the call will then assign the user to the client object.
 	if(username) {
-		let user = await client.getUserContext(username, true);
+		let user = client.getUserContext(username, true);
 		if(!user) {
 			throw new Error(util.format('User was not found :', username));
 		} else {
@@ -59,26 +60,26 @@ async function getClientForOrg (userorg, username) {
 	return client;
 }
 
-const getRegisteredUser = async function(username, userOrg, isJson) {
+const getRegisteredUser = function(username, userOrg, isJson) {
 	try {
-		const client = await getClientForOrg(userOrg);
+		const client = getClientForOrg(userOrg);
 		logger.debug('Successfully initialized the credential stores');
 			// client can now act as an agent for organization Org1
 			// first check to see if the user is already enrolled
-		let user = await client.getUserContext(username, true);
+		let user = client.getUserContext(username, true);
 		if (user && user.isEnrolled()) {
 			logger.info('Successfully loaded member from persistence');
 		} else {
 			// user was not enrolled, so we will need an admin user object to register
 			const admins = hfc.getConfigSetting('admins');
-			let adminUserObj = await client.setUserContext({username: admins[0].username, password: admins[0].secret});
+			let adminUserObj = client.setUserContext({username: admins[0].username, password: admins[0].secret});
 			let caClient = client.getCertificateAuthority();
-			let secret = await caClient.register({
+			let secret = caClient.register({
 				enrollmentID: username,
 				affiliation: userOrg.toLowerCase() + '.department1'
 			}, adminUserObj);
 			logger.debug('Successfully got the secret for user %s',username);
-			user = await client.setUserContext({username:username, password:secret});
+			user = client.setUserContext({username:username, password:secret});
 			logger.debug('Successfully enrolled username %s  and setUserContext on the client object', username);
 		}
 		if(user && user.isEnrolled) {
@@ -107,7 +108,7 @@ const setupChaincodeDeploy = function() {
 
 const getLogger = function(moduleName) {
 	const logger = log4js.getLogger(moduleName);
-	logger.setLevel('DEBUG');
+	// logger.setLevel('DEBUG');
 	return logger;
 };
 
