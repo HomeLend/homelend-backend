@@ -6,6 +6,8 @@ const debug = require('debug')('ico-backend:server');
 const logger = require('../lib/logger');
 
 const http = require('http');
+const setSocket = require('../controllers/socket');
+const sockIo = require('socket.io');
 
 /**
  * Get port from environment and store in Express.
@@ -27,6 +29,14 @@ const server = http.createServer(app);
 server.listen(port, 'localhost');
 server.on('error', onError);
 server.on('listening', onListening);
+
+
+// Open socket with server, path /sock
+const io = sockIo(server, {
+  path: '/sock'
+});
+// Assigning the connection to an exported entity, and setting listeners
+setSocket(io);
 
 /**
  *

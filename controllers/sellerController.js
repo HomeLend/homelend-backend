@@ -3,6 +3,8 @@ const httpStatus = require('http-status-codes');
 
 const logger = require('../lib/logger');
 
+const getIo = require('../controllers/socket');
+
 /**
  *
  * @param req
@@ -16,6 +18,7 @@ const logger = require('../lib/logger');
  *
  */
 module.exports.advertise = (req, res) => {
+  const io = getIo();
   const address = req.body.address;
   const price = req.body.price;
   const idnumber = req.body.idnumber;
@@ -27,6 +30,8 @@ module.exports.advertise = (req, res) => {
         send({err: 'Invalid input paramteres'});
   }
 
+  io.to('propertiesList room').emit('propertiesList', {test: "wat"});
+
   return res.send({
     hash: 'hash1',
     address: address,
@@ -36,5 +41,6 @@ module.exports.advertise = (req, res) => {
     txHash: '113213132132112321',
     status: 'ADVERTISED'
   });
+
 
 };
