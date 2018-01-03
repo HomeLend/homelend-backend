@@ -1,3 +1,5 @@
+const buyerController = require('../controllers/buyerController');
+
 let socket = {};
 
 module.exports = (io = null) => {
@@ -8,6 +10,7 @@ module.exports = (io = null) => {
   // On user connection, join the connection to this room
   io.on('connection', socket => {
     socket.join('propertiesList room');
+    socket.emit('propertiesList', buyerController.fetchAssetsForSale())
   });
 
   socket = io;

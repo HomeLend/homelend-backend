@@ -127,7 +127,21 @@ module.exports.acceptOfferFromInsurance = (req, res) => {
   });
 }
 
+const fetchAssetsForSale = () => [{
+  hash: '123',
+  address: "711-2880 Nulla St. Mankato Mississippi 96522",
+  price: 1000000,
+  sellerIdnumber: '300019239'
+},
+  {
+    hash: '111',
+    address: "P.O. Box 283 8562 Fusce Rd. Azusa New York 39531",
+    price: 2000000,
+    sellerIdnumber: '201327616'
+  }
+] ;
 
+module.exports.fetchAssetsForSale = fetchAssetsForSale;
 
 /**
  *
@@ -136,17 +150,5 @@ module.exports.acceptOfferFromInsurance = (req, res) => {
  *
  */
 module.exports.getAllAssets4Sale = (req, res) => {
-  return res.send([{
-    hash: '123',
-    address: "711-2880 Nulla St. Mankato Mississippi 96522",
-    price: 1000000,
-    sellerIdnumber: '300019239'
-  },
-  {
-    hash: '111',
-    address: "P.O. Box 283 8562 Fusce Rd. Azusa New York 39531",
-    price: 2000000,
-    sellerIdnumber: '201327616'
-  }
-  ]);
+  return res.send(fetchAssetsForSale());
 };

@@ -2,6 +2,7 @@ const db = require('../lib/db');
 const httpStatus = require('http-status-codes');
 
 const logger = require('../lib/logger');
+const buyerController = require('../controllers/buyerController');
 
 const getIo = require('../controllers/socket');
 
@@ -30,7 +31,7 @@ module.exports.advertise = (req, res) => {
         send({err: 'Invalid input paramteres'});
   }
 
-  io.to('propertiesList room').emit('propertiesList', {test: "wat"});
+  io.to('propertiesList room').emit('propertiesList', buyerController.fetchAssetsForSale());
 
   return res.send({
     hash: 'hash1',
