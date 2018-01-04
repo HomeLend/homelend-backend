@@ -1,7 +1,7 @@
 {
   "env": "dev",
   "bitgo-env": "test",
-  "mongodb": "mongodb://localhost/charg?authSource=admin",
+  "mongodb": "mongodb://admin:admin@localhost/charg?authSource=admin",
   "secret": "3a087e2edce271797988982d76a09dc0b6df1b6361a1fa09fbec4d258f6828bc",
   "jwt_expiretime": 36000,
   "auth-max-fail-count": 20,
