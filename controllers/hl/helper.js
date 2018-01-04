@@ -25,7 +25,7 @@ var fs = require('fs-extra');
 var User = require('fabric-client/lib/User.js');
 var crypto = require('crypto');
 var copService = require('fabric-ca-client');
-const config=require('config');
+const config = require('config');
 var hfc = require('fabric-client');
 hfc.addConfigFile(path.join(__dirname, "network-config.json"));
 hfc.setLogger(logger);
@@ -40,7 +40,7 @@ for (let key in ORGS) {
         let client = new hfc();
 
         let cryptoSuite = hfc.newCryptoSuite();
-        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({path: getKeyStoreForOrg(ORGS[key].name)}));
+        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({ path: getKeyStoreForOrg(ORGS[key].name) }));
         client.setCryptoSuite(cryptoSuite);
 
         let channel = client.newChannel('mainchannel');
@@ -85,7 +85,7 @@ function readAllFiles(dir) {
     var files = fs.readdirSync(dir);
     var certs = [];
     files.forEach((file_name) => {
-        let file_path = path.join(dir,file_name);
+        let file_path = path.join(dir, file_name);
         let data = fs.readFileSync(file_path);
         certs.push(data);
     });
@@ -97,7 +97,11 @@ function getOrgName(org) {
 }
 
 function getKeyStoreForOrg(org) {
-    return hfc.getConfigSetting('keyValueStore') + '_' + org;
+    if (path.sep === "\\") {
+        return config.get('keyValueStoreWindows') + '_' + org;        
+    } else {
+        return config.get('keyValueStore') + '_' + org;
+    }
 }
 
 function newRemotes(names, forPeers, userOrg) {
@@ -135,28 +139,28 @@ function newRemotes(names, forPeers, userOrg) {
 //-------------------------------------//
 // APIs
 //-------------------------------------//
-var getChannelForOrg = function(org) {
+var getChannelForOrg = function (org) {
     return channels[org];
 };
 
-var getClientForOrg = function(org) {
+var getClientForOrg = function (org) {
     return clients[org];
 };
 
-var newPeers = function(names, org) {
+var newPeers = function (names, org) {
     return newRemotes(names, true, org);
 };
 
-var newEventHubs = function(names, org) {
+var newEventHubs = function (names, org) {
     return newRemotes(names, false, org);
 };
 
-var getMspID = function(org) {
+var getMspID = function (org) {
     logger.debug('Msp ID : ' + ORGS[org].mspid);
     return ORGS[org].mspid;
 };
 
-var getAdminUser = function(userOrg) {
+var getAdminUser = function (userOrg) {
     var users = config.get('admins');
     var username = users[0].username;
     var password = users[0].secret;
@@ -198,7 +202,7 @@ var getAdminUser = function(userOrg) {
     });
 };
 
-var getRegisteredUsers = function(username, userOrg, isJson) {
+var getRegisteredUsers = function (username, userOrg, isJson) {
     var member;
     var client = getClientForOrg(userOrg);
     var enrollmentSecret = null;
@@ -214,7 +218,7 @@ var getRegisteredUsers = function(username, userOrg, isJson) {
                 return user;
             } else {
                 let caClient = caClients[userOrg];
-                return getAdminUser(userOrg).then(function(adminUserObj) {
+                return getAdminUser(userOrg).then(function (adminUserObj) {
                     member = adminUserObj;
                     return caClient.register({
                         enrollmentID: username,
@@ -233,7 +237,7 @@ var getRegisteredUsers = function(username, userOrg, isJson) {
                     //return 'Failed to register '+username+'. Error: ' + err.stack ? err.stack : err;
                 }).then((message) => {
                     if (message && typeof message === 'string' && message.includes(
-                            'Error:')) {
+                        'Error:')) {
                         logger.error(username + ' enrollment failed');
                         return message;
                     }
@@ -268,7 +272,7 @@ var getRegisteredUsers = function(username, userOrg, isJson) {
     });
 };
 
-var getOrgAdmin = function(userOrg) {
+var getOrgAdmin = function (userOrg) {
     var admin = ORGS[userOrg].admin;
     var keyPath = path.join(__dirname, admin.key);
     var keyPEM = Buffer.from(readAllFiles(keyPath)[0]).toString();
@@ -278,7 +282,7 @@ var getOrgAdmin = function(userOrg) {
     var client = getClientForOrg(userOrg);
     var cryptoSuite = hfc.newCryptoSuite();
     if (userOrg) {
-        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({path: getKeyStoreForOrg(getOrgName(userOrg))}));
+        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({ path: getKeyStoreForOrg(getOrgName(userOrg)) }));
         client.setCryptoSuite(cryptoSuite);
     }
 
@@ -288,7 +292,7 @@ var getOrgAdmin = function(userOrg) {
         client.setStateStore(store);
 
         return client.createUser({
-            username: 'peer'+userOrg+'Admin',
+            username: 'peer' + userOrg + 'Admin',
             mspid: getMspID(userOrg),
             cryptoContent: {
                 privateKeyPEM: keyPEM,
@@ -298,11 +302,11 @@ var getOrgAdmin = function(userOrg) {
     });
 };
 
-var setupChaincodeDeploy = function() {
+var setupChaincodeDeploy = function () {
     process.env.GOPATH = path.join(__dirname, hfc.getConfigSetting('CC_SRC_PATH'));
 };
 
-var getLogger = function(moduleName) {
+var getLogger = function (moduleName) {
     var logger = log4js.getLogger(moduleName);
     // logger.setLevel('DEBUG');
     return logger;
