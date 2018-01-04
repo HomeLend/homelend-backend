@@ -8,11 +8,11 @@
     "org_pocseller": {
       "name": "peerPOCSeller",
       "mspid": "POCSellerMSP",
-      "ca": "http://ca.pocseller.homelend.io:7054",
+      "ca": "http://ca.pocseller.homelend.io:13054",
       "peers": {
         "peer0": {
-          "requests": "grpcs://peer0.pocseller.homelend.io:7051",
-          "events": "grpcs://peer0.pocseller.homelend.io:7053",
+          "requests": "grpcs://peer0.pocseller.homelend.io:12051",
+          "events": "grpcs://peer0.pocseller.homelend.io:12053",
           "server-hostname": "peer0.pocseller.homelend.io",
           "tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/peers/peer0.pocseller.homelend.io/tls/ca.crt"
         }
