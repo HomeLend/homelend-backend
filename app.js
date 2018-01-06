@@ -10,6 +10,10 @@ const logger = require('./lib/logger');
 /* Register all libs */
 require('./lib/db');
 
+/* Register all models */
+require('./models/UsersModel');
+require('./models/PropertyModel');
+
 /* Register all routes */
 const notificationRouter = require('./routes/notificationRouter');
 const supportRouter = require('./routes/supportRouter');
@@ -28,17 +32,17 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 // Enable Cross Origin Resource Sharing
-app.all('/*', function(req, res, next) {
-  // CORS headers
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
-    res.header('Access-Control-Allow-Headers',
-        'Content-Type,X-Access-Token,Cache-Control');
-    return res.sendStatus(httpStatus.OK).end();
-  } else {
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
-    next();
-  }
+app.all('/*', function (req, res, next) {
+    // CORS headers
+    if (req.method === 'OPTIONS') {
+        res.header('Access-Control-Allow-Origin', req.headers.origin);
+        res.header('Access-Control-Allow-Headers',
+            'Content-Type,X-Access-Token,Cache-Control');
+        return res.sendStatus(httpStatus.OK).end();
+    } else {
+        res.header('Access-Control-Allow-Origin', req.headers.origin);
+        next();
+    }
 });
 
 /* Express Router configrations */
@@ -50,14 +54,14 @@ app.use(API + 'auth', authRouter);
 app.use(API + 'buyer', buyerRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  return res.status(httpStatus.NOT_FOUND).send({'err': 'Not found'});
+app.use(function (req, res, next) {
+    return res.status(httpStatus.NOT_FOUND).send({'err': 'Not found'});
 });
 
 // error handler
-app.use(function(err, req, res, next) {
-  logger.error('[Handler]', err);
-  return res.status(httpStatus.BAD_REQUEST).send({'err': 'Bad request'});
+app.use(function (err, req, res, next) {
+    logger.error('[Handler]', err);
+    return res.status(httpStatus.BAD_REQUEST).send({'err': 'Bad request'});
 });
 
 logger.debug('[Server]', 'Server running mode', config.get('env'));

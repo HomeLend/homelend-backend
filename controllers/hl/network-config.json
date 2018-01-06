@@ -8,7 +8,7 @@
     "org_pocseller": {
       "name": "peerPOCSeller",
       "mspid": "POCSellerMSP",
-      "ca": "http://ca.pocseller.homelend.io:13054",
+      "ca": "https://ca.pocseller.homelend.io:13054",
       "peers": {
         "peer0": {
           "requests": "grpcs://peer0.pocseller.homelend.io:12051",
@@ -22,6 +22,25 @@
         "secret": "adminpw",
         "key": "../../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/users/Admin@pocseller.homelend.io/msp/keystore",
         "cert": "../../artifacts/crypto-config/peerOrganizations/pocseller.homelend.io/users/Admin@pocseller.homelend.io/msp/signcerts"
+      }
+    },
+    "org_pocbuyer": {
+      "name": "peerPOCBuyer",
+      "mspid": "POCBuyerMSP",
+      "ca": "https://ca.pocbuyer.homelend.io:13054",
+      "peers": {
+        "peer0": {
+          "requests": "grpcs://peer0.pocbuyer.homelend.io:12051",
+          "events": "grpcs://peer0.pocbuyer.homelend.io:12053",
+          "server-hostname": "peer0.pocbuyer.homelend.io",
+          "tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocbuyer.homelend.io/peers/peer0.pocbuyer.homelend.io/tls/ca.crt"
+        }
+      },
+      "admin": {
+        "username": "admin",
+        "secret": "adminpw",
+        "key": "../../artifacts/crypto-config/peerOrganizations/pocbuyer.homelend.io/users/Admin@pocbuyer.homelend.io/msp/keystore",
+        "cert": "../../artifacts/crypto-config/peerOrganizations/pocbuyer.homelend.io/users/Admin@pocbuyer.homelend.io/msp/signcerts"
       }
     }
   }

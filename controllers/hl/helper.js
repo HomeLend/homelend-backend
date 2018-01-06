@@ -34,13 +34,16 @@ var ORGS = hfc.getConfigSetting('network-config');
 var clients = {};
 var channels = {};
 var caClients = {};
+
+let cryptoSuite;
+
 // set up the client and channel objects for each org
 for (let key in ORGS) {
     if (key.indexOf('org') === 0) {
         let client = new hfc();
 
-        let cryptoSuite = hfc.newCryptoSuite();
-        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({ path: getKeyStoreForOrg(ORGS[key].name) }));
+        cryptoSuite = hfc.newCryptoSuite();
+        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({path: getKeyStoreForOrg(ORGS[key].name)}));
         client.setCryptoSuite(cryptoSuite);
 
         let channel = client.newChannel('mainchannel');
@@ -98,7 +101,7 @@ function getOrgName(org) {
 
 function getKeyStoreForOrg(org) {
     if (path.sep === "\\") {
-        return config.get('keyValueStoreWindows') + '_' + org;        
+        return config.get('keyValueStoreWindows') + '_' + org;
     } else {
         return config.get('keyValueStore') + '_' + org;
     }
@@ -202,6 +205,128 @@ var getAdminUser = function (userOrg) {
     });
 };
 
+//Register new user to blockchain
+const registerUser = function (userOrg, username, affiliation, attrs, adminusername, adminpassword) {
+    console.log(attrs);
+    let usersecret;
+    let defaultKVStore;
+    const client = getClientForOrg(userOrg);
+    const mspId = ORGS[userOrg].mspid;
+    let member;
+    return hfc.newDefaultKeyValueStore({
+        path: getKeyStoreForOrg(getOrgName(userOrg))
+    }).then((store) => {
+        defaultKVStore = store;
+        client.setStateStore(store);
+        // clearing the user context before switching
+        client._userContext = null;
+        const caClient = caClients[userOrg];
+        return enrollUser(userOrg, adminusername, adminpassword).then(function (adminUserObj) {
+            return caClient.register({
+                enrollmentID: username,
+                affiliation: affiliation,
+                // attrs: attrs
+            }, adminUserObj);
+        }).then((secret) => {
+            usersecret = secret;
+            return caClient.enroll(
+                {
+                    enrollmentID: username,
+                    enrollmentSecret: secret
+                });
+        }, (err) => {
+            return err;
+        });
+    }).then((result) => {
+        result.secret = usersecret;
+        return result;
+    }, (err) => {
+        return err;
+    });
+};
+
+//New method to enroll user in blockchain with password or with key and certificates if available
+const enrollUser = function (userOrg, username, password, key, certificate) {
+    const client = getClientForOrg(userOrg);
+    return hfc.newDefaultKeyValueStore({
+        path: getKeyStoreForOrg(getOrgName(userOrg))
+    }).then((store) => {
+        client.setStateStore(store);
+        client._userContext = null;
+        if (!key || !certficate) {
+            return getUserWithEnroll(userOrg, username, password);
+        }
+        else {
+            return getUserWithoutEnroll(userOrg, username, password, key, certificate);
+        }
+    }).then((user) => {
+        return user;
+    }, (err) => {
+        return err;
+    });
+};
+
+//Get registered user which is enrolled
+const getUserWithoutEnroll = function (userOrg, username, password, key, certificate) {
+    let member;
+    const client = getClientForOrg(userOrg);
+    let opts;
+    if (cryptoSuite._cryptoKeyStore) {
+        opts = {ephemeral: false};
+    } else {
+        opts = {ephemeral: true};
+    }
+    return cryptoSuite.importKey(key, opts)
+        .then(function (privatekey) {
+            return hfc.newDefaultKeyValueStore({
+                path: getKeyStoreForOrg(getOrgName(userOrg))
+            }).then((store) => {
+                client.setStateStore(store);
+                member = new User(username);
+                member._enrollmentSecret = password;
+                return member.setEnrollment(privatekey, certificate, getMspID(userOrg));
+            }).then(() => {
+                return client.setUserContext(member, true);
+            }).then(() => {
+                return member;
+            });
+        }, function (err) {
+            return err;
+        });
+};
+
+//Register new user
+const getUserWithEnroll = function (userOrg, username, password) {
+    let member;
+    const client = getClientForOrg(userOrg);
+    return hfc.newDefaultKeyValueStore({
+        path: getKeyStoreForOrg(getOrgName(userOrg))
+    }).then((store) => {
+        client.setStateStore(store);
+        // clearing the user context before switching
+        client._userContext = null;
+        const caClient = caClients[userOrg];
+        // need to enroll it with CA server
+        return caClient.enroll({
+            enrollmentID: username,
+            enrollmentSecret: password
+        }).then((enrollment) => {
+            member = new User(username);
+            member.setCryptoSuite(client.getCryptoSuite());
+            const buff = new Buffer(enrollment.key.toBytes());
+            return member.setEnrollment(enrollment.key, enrollment.certificate, getMspID(userOrg));
+        }).then(() => {
+            return client.setUserContext(member, true);
+        }).then(() => {
+            return member;
+        }).catch((err) => {
+            return err;
+        });
+    }).catch((err) => {
+        return err;
+    });
+};
+
 var getRegisteredUsers = function (username, userOrg, isJson) {
     var member;
     var client = getClientForOrg(userOrg);
@@ -237,7 +362,7 @@ var getRegisteredUsers = function (username, userOrg, isJson) {
                     //return 'Failed to register '+username+'. Error: ' + err.stack ? err.stack : err;
                 }).then((message) => {
                     if (message && typeof message === 'string' && message.includes(
-                        'Error:')) {
+                            'Error:')) {
                         logger.error(username + ' enrollment failed');
                         return message;
                     }
@@ -252,7 +377,8 @@ var getRegisteredUsers = function (username, userOrg, isJson) {
                 }, (err) => {
                     logger.error(util.format('%s enroll failed: %s', username, err.stack ? err.stack : err));
                     return '' + err;
-                });;
+                });
+                ;
             }
         });
     }).then((user) => {
@@ -282,7 +408,7 @@ var getOrgAdmin = function (userOrg) {
     var client = getClientForOrg(userOrg);
     var cryptoSuite = hfc.newCryptoSuite();
     if (userOrg) {
-        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({ path: getKeyStoreForOrg(getOrgName(userOrg)) }));
+        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({path: getKeyStoreForOrg(getOrgName(userOrg))}));
         client.setCryptoSuite(cryptoSuite);
     }
 
@@ -322,3 +448,5 @@ exports.newPeers = newPeers;
 exports.newEventHubs = newEventHubs;
 exports.getRegisteredUsers = getRegisteredUsers;
 exports.getOrgAdmin = getOrgAdmin;
+exports.registerUser = registerUser;
+exports.enrollUser = enrollUser;

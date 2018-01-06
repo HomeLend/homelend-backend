@@ -5,6 +5,9 @@ const authController = require('../controllers/authController');
 
 router.post('/', authController.auth);
 router.post('/sign-up', authController.signup);
+//Temp method for registering user inside blockchain
+router.post('/reg', authController.registerUserBlockchain);
+
 // router.post('/activate', authController.activateEmail);
 // router.post('/activate-account', authController.activateAccount);
 // router.post('/change-password', authController.changePassword);

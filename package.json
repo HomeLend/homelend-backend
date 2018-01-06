@@ -25,6 +25,7 @@
     "mailcomposer": "^4.0.2",
     "mailgun-js": "^0.13.1",
     "mongoose": "^4.13.7",
+    "mongoose-double": "0.0.1",
     "morgan": "^1.9.0",
     "ngx-qrcode2": "^0.0.5",
     "pug": "^2.0.0-rc.4",
