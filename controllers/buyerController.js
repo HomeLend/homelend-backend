@@ -39,36 +39,57 @@ const UsersCacheModel = db.model('UsersCache');
 module.exports.buy = (req, res) => {
     const body = req.body;
     body.Timestamp = Date.now();
-
     const email = req.body.email;
-
+    const idNumber = req.body.idNumber;
+    const idBase64 = req.body.idBase64;
+    const FirstName = req.body.FirstName;
+    const LastName = req.body.LastName;
     const data = {
-        PropertyHash : "ddfdfd",
-    }
-
-    UsersCacheModel.findOne({ email: email }).then((currentUser) => {
+        PropertyHash: "ddfdfd",
+    };
+    const buyerData = {
+        FirstName: FirstName,
+        LastName: LastName,
+        Email: email,
+        IDNumber: idNumber,
+        IDBase64: idBase64,
+    };
+    UsersCacheModel.findOne({email: email}).then((currentUser) => {
         if (!currentUser) {
-            registerBuyer(email).then((registerResult) => {
+            return registerBuyer(email).then((registerResult) => {
                 UsersCacheModel({
                     email: email,
                     password: registerResult.secret
-                }).save().then((saveResult) => {
-                    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(data)], 'org_pocseller', email, registerResult.secret).then((response) => {
-                        return res.status(200).send(response);
+                }).save().then((user) => {
+                    if (!user) {
+                        return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
+                    }
+                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'putBuyerPersonalInfo', [JSON.stringify(buyerData)], 'org_pocbuyer', email, registerResult.secret).then((response) => {
+                        if (!response) {
+                            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                        }
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(data)], 'org_pocbuyer', email, registerResult.secret).then((response) => {
+                            if (!response) {
+                                return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                            }
+                            return res.status(200).send(response);
+                        });
                     });
-                }).catch((err) => {
-                    return res.status(500).send(err);
                 });
             });
         }
         else {
-            invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(data)], 'org_pocseller', currentUser.email, currentUser.password).then((response) => {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(data)], 'org_pocbuyer', email, currentUser.password).then((response) => {
+                if (!response) {
+                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                }
                 return res.status(200).send(response);
             });
-
         }
+    }).catch((err) => {
+        return res.status(httpStatus.BAD_REQUEST).send({err: err});
     });
-}
+};
 
 const registerBuyer = (email) => {
     const username = email;
@@ -95,17 +116,9 @@ const registerBuyer = (email) => {
         response.key = buff.toString('utf8');
         response.certificate = result.certificate;
         response.rootCertificate = result.rootCertificate;
-        //     return response;
-        // }).catch((err) => {
-        //     console.log(err);
-        // });
         return (response);
-    }).catch(err => {
-        return null;
-        //return res.status(httpStatus.BAD_REQUEST).send(err);
     });
-}
-
+};
 
 
 /**
@@ -254,12 +267,12 @@ const fetchAssetsForSale = () => [{
     price: 1000000,
     sellerIdnumber: '300019239'
 },
-{
-    hash: '111',
-    address: "P.O. Box 283 8562 Fusce Rd. Azusa New York 39531",
-    price: 2000000,
-    sellerIdnumber: '201327616'
-}
+    {
+        hash: '111',
+        address: "P.O. Box 283 8562 Fusce Rd. Azusa New York 39531",
+        price: 2000000,
+        sellerIdnumber: '201327616'
+    }
 ];
 
 module.exports.fetchAssetsForSale = fetchAssetsForSale;

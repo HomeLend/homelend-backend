@@ -114,14 +114,14 @@ module.exports.registerUserBlockchain = (req, res) => {
     const isJSON = true;
     const attrs = [
         {
-        'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
-        'hf.Registrar.DelegateRoles': 'client,user,validator,auditor',
-        'hf.Revoker': true,
-        'hf.IntermediateCA': true,
-        //user role can be customized
-        BasicRole: 'admin',
-        'hf.Registrar.Attributes': '*',
-    }];
+            'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
+            'hf.Registrar.DelegateRoles': 'client,user,validator,auditor',
+            'hf.Revoker': true,
+            'hf.IntermediateCA': true,
+            //user role can be customized
+            BasicRole: 'admin',
+            'hf.Registrar.Attributes': '*',
+        }];
     const dept = 'mashreq' + '.department1';
     const adminUsername = 'admin';
     const adminPassword = 'adminpw';

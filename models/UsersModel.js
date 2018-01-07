@@ -5,7 +5,11 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const UsersSchema = new Schema({
-    fullname: {
+    firstName: {
+        type: String,
+        required: true,
+    },
+    lastName: {
         type: String,
         required: true,
     },
@@ -19,32 +23,11 @@ const UsersSchema = new Schema({
         type: String,
         required: true,
     },
-    twoFaEnabled: Boolean,
-    twoFaCode: String,
-    forgotPasswordCode: String,
-    forgotPasswordTried: Number,
-    authCount: {
-        type: Number,
-        default: 0,
-    },
     hash: {
         type: String,
         require: true
     },
-    active: {
-        type: Boolean,
-        default: false,
-    },
-    verified: {
-        type: Boolean,
-        default: false,
-    },
-    activationCode: String,
-    referralCode: {
-        type: String,
-        required: false,
-    },
-    timestamp: {type: Date, default: Date.now},
+    timestamp: {type: Date, default: Date.now}
 });
 
 db.model('Users', UsersSchema);
