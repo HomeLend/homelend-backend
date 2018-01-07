@@ -7,6 +7,9 @@ const logger = require('../lib/logger');
 const config = require('config');
 const helper = require('./hl/helper');
 
+const UsersCacheModel = db.model('UsersCache');
+
+
 /**
  * Function registers the request for the buyer
  *
@@ -32,15 +35,74 @@ const helper = require('./hl/helper');
  * @param {String} req.body.Status
  */
 
+
 module.exports.buy = (req, res) => {
     const body = req.body;
     body.Timestamp = Date.now();
-    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(body)], 'admin', 'org_pocseller').then((response) => {
-        return res.send(response);
-    }).catch((err) => {
-        console.log(err);
+
+    const email = req.body.email;
+
+    UsersCacheModel.findOne({ email: email }).then((currentUser) => {
+        if (!currentUser) {
+            registerBuyer(email).then((registerResult) => {
+                UsersCacheModel({
+                    email: email,
+                    password: registerResult.secret
+                }).save().then((saveResult) => {
+                    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(body)], 'org_pocseller', email, registerResult.secret).then((response) => {
+                        return res.status(200).send(response);
+                    });
+                }).catch((err) => {
+                    return res.status(500).send(err);
+                });
+            });
+        }
+        else {
+            invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(body)], 'org_pocseller', currentUser.email, currentUser.password).then((response) => {
+                return res.status(200).send(response);
+            });
+
+        }
     });
-};
+}
+
+const registerBuyer = (email) => {
+    const username = email;
+    const org = 'org_pocbuyer';
+    const isJSON = true;
+    const attrs = [
+        {
+            'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
+            'hf.Registrar.DelegateRoles': 'client,user,validator,auditor',
+            'hf.Revoker': true,
+            'hf.IntermediateCA': true,
+            //user role can be customized
+            BasicRole: 'admin',
+            'hf.Registrar.Attributes': '*',
+        }];
+    const dept = 'mashreq' + '.department1';
+    const adminUsername = 'admin';
+    const adminPassword = 'adminpw';
+    return helper.registerUser(org, username, dept, attrs, adminUsername, adminPassword).then((result) => {
+        console.log(result);
+        const response = {};
+        response.secret = result.secret;
+        const buff = new Buffer(result.key.toBytes());
+        response.key = buff.toString('utf8');
+        response.certificate = result.certificate;
+        response.rootCertificate = result.rootCertificate;
+        //     return response;
+        // }).catch((err) => {
+        //     console.log(err);
+        // });
+        return (response);
+    }).catch(err => {
+        return null;
+        //return res.status(httpStatus.BAD_REQUEST).send(err);
+    });
+}
+
+
 
 /**
  * Function inserts buyer's personal info
@@ -188,12 +250,12 @@ const fetchAssetsForSale = () => [{
     price: 1000000,
     sellerIdnumber: '300019239'
 },
-    {
-        hash: '111',
-        address: "P.O. Box 283 8562 Fusce Rd. Azusa New York 39531",
-        price: 2000000,
-        sellerIdnumber: '201327616'
-    }
+{
+    hash: '111',
+    address: "P.O. Box 283 8562 Fusce Rd. Azusa New York 39531",
+    price: 2000000,
+    sellerIdnumber: '201327616'
+}
 ];
 
 module.exports.fetchAssetsForSale = fetchAssetsForSale;
