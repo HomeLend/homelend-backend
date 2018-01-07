@@ -57,7 +57,7 @@ module.exports.buy = (req, res) => {
     UsersCacheModel.findOne({email: email}).then((currentUser) => {
         if (!currentUser) {
             return registerBuyer(email).then((registerResult) => {
-                UsersCacheModel({
+                return UsersCacheModel({
                     email: email,
                     password: registerResult.secret
                 }).save().then((user) => {
