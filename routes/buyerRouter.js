@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const buyerController = require('../controllers/buyerController');
 
+router.post('/register', buyerController.RegisterBuyer);
 router.get('/confirmed-requets', buyerController.getConfirmedRequests);
 
 router.post('/confirmed-requests', buyerController.buy);

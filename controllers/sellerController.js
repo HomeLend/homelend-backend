@@ -25,11 +25,11 @@ module.exports.advertise = (req, res) => {
         Timestamp: Date.now()
     };
     if (!address || !price) {
-        return res.status(httpStatus.BAD_REQUEST).send({err: 'Invalid input paramteres'});
+        return res.status(httpStatus.BAD_REQUEST).send({ err: 'Invalid input paramteres' });
     }
     userModel.findById(_id).exec().then((user) => {
         if (!user || !user.hash) {
-            return res.status(httpStatus.BAD_REQUEST).send({err: 'Invalid request'});
+            return res.status(httpStatus.BAD_REQUEST).send({ err: 'Invalid request' });
         }
         body.SellerHash = user.hash;
         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'advertise', [JSON.stringify(body)], 'admin', 'org_pocseller').then((response) => {
@@ -37,14 +37,14 @@ module.exports.advertise = (req, res) => {
             const property = new propertyModel(res);
             return property.save().then((property) => {
                 if (!property) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: 'Something went wrong'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: 'Something went wrong' });
                 } else {
-                    return res.send({msg: 'Property added successfully'});
+                    return res.send({ msg: 'Property added successfully' });
                 }
             });
         })
     }).catch((err) => {
         //TODO: Handling errors at one point and send proper error response is pending
-        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
     });
 };
