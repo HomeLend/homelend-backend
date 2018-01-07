@@ -42,6 +42,10 @@ module.exports.buy = (req, res) => {
 
     const email = req.body.email;
 
+    const data = {
+        PropertyHash : "ddfdfd",
+    }
+
     UsersCacheModel.findOne({ email: email }).then((currentUser) => {
         if (!currentUser) {
             registerBuyer(email).then((registerResult) => {
@@ -49,7 +53,7 @@ module.exports.buy = (req, res) => {
                     email: email,
                     password: registerResult.secret
                 }).save().then((saveResult) => {
-                    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(body)], 'org_pocseller', email, registerResult.secret).then((response) => {
+                    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(PropertyHash)], 'org_pocseller', email, registerResult.secret).then((response) => {
                         return res.status(200).send(response);
                     });
                 }).catch((err) => {
@@ -58,7 +62,7 @@ module.exports.buy = (req, res) => {
             });
         }
         else {
-            invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(body)], 'org_pocseller', currentUser.email, currentUser.password).then((response) => {
+            invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(PropertyHash)], 'org_pocseller', currentUser.email, currentUser.password).then((response) => {
                 return res.status(200).send(response);
             });
 
