@@ -53,6 +53,7 @@ module.exports.buy = (req, res) => {
         Email: email,
         IDNumber: idNumber,
         IDBase64: idBase64,
+        Timestamp: Date.now()
     };
     UsersCacheModel.findOne({email: email}).then((currentUser) => {
         if (!currentUser) {
