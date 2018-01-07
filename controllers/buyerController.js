@@ -58,40 +58,6 @@ module.exports.buy = (req, res) => {
  *
  */
 
-module.exports.RegisterBuyer = (req, res) => {
-    const creditScore = req.body.creditScore;
-    
-    const email = req.body.email;
-    const org = 'org_pocbuyer';
-    const attrs = [
-        {
-        'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
-        'hf.Registrar.DelegateRoles': 'client,user,validator,auditor',
-        'hf.Revoker': true,
-        'hf.IntermediateCA': true,
-        //user role can be customized
-        BasicRole: 'admin',
-        'hf.Registrar.Attributes': '*',
-    }];
-    
-    const dept = 'mashreq' + '.department1';
-    const adminUsername = 'admin';
-    const adminPassword = 'adminpw';
-    return helper.registerUser(org, email, dept, attrs, adminUsername, adminPassword).then((result) => {
-        console.log(result);
-        const response = {};
-        response.secret = result.secret;
-        const buff = new Buffer(result.key.toBytes());
-        response.key = buff.toString('utf8');
-        response.certificate = result.certificate;
-        response.rootCertificate = result.rootCertificate;
-        return res.send((response));
-    }).catch(err => {
-        return res.status(httpStatus.BAD_REQUEST).send(err);
-    });
-}
-
-
 module.exports.putBuyerPersonalInfo = (req, res) => {
     const body = req.body;
     body.Timestamp = Date.now();
