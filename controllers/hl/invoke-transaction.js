@@ -24,19 +24,19 @@ var logger = helper.getLogger('invoke-chaincode');
 var EventHub = require('fabric-client/lib/EventHub.js');
 var ORGS = hfc.getConfigSetting('network-config');
 
-var invokeChaincode = function(peerNames, channelName, chaincodeName, fcn, args, username, org) {
+var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args, org, username, password, key, certificate) {
     logger.debug(util.format('\n============ invoke transaction on organization %s ============\n', org));
     var client = helper.getClientForOrg(org);
     var channel = helper.getChannelForOrg(org);
     var targets = (peerNames) ? helper.newPeers(peerNames, org) : undefined;
     var tx_id = null;
-    return helper.getRegisteredUsers(username, org).then((user) => {
+    return helper.enrollUser(org, username, password, key, certificate).then((user) => {
         tx_id = client.newTransactionID();
         logger.debug(util.format('Sending transaction "%j"', tx_id));
         // send proposal to endorser
         var request = {
             chaincodeId: chaincodeName,
-            chaincodeVersion:'v1',
+            chaincodeVersion: 'v1',
             fcn: fcn,
             args: args,
             chainId: channelName,
@@ -82,7 +82,7 @@ var invokeChaincode = function(peerNames, channelName, chaincodeName, fcn, args,
             var eventPromises = [];
 
             if (!peerNames) {
-                peerNames = channel.getPeers().map(function(peer) {
+                peerNames = channel.getPeers().map(function (peer) {
                     return peer.getName();
                 });
             }
@@ -116,7 +116,8 @@ var invokeChaincode = function(peerNames, channelName, chaincodeName, fcn, args,
                     });
                 });
                 eventPromises.push(txPromise);
-            };
+            }
+            ;
             var sendPromise = channel.sendTransaction(request);
             return Promise.all([sendPromise].concat(eventPromises)).then((results) => {
                 logger.debug(' event promise all complete and testing complete');
