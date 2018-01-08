@@ -207,7 +207,6 @@ var getAdminUser = function (userOrg) {
 
 //Register new user to blockchain
 const registerUser = function (userOrg, username, affiliation, attrs, adminusername, adminpassword) {
-    console.log(attrs);
     let usersecret;
     let defaultKVStore;
     const client = getClientForOrg(userOrg);
@@ -222,6 +221,7 @@ const registerUser = function (userOrg, username, affiliation, attrs, adminusern
         client._userContext = null;
         const caClient = caClients[userOrg];
         return enrollUser(userOrg, adminusername, adminpassword).then(function (adminUserObj) {
+            console.log(adminUserObj);
             return caClient.register({
                 enrollmentID: username,
                 affiliation: affiliation,
