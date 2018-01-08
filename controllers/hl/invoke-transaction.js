@@ -31,6 +31,7 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
     var targets = (peerNames) ? helper.newPeers(peerNames, org) : undefined;
     var tx_id = null;
     return helper.enrollUser(org, username, password, key, certificate).then((user) => {
+        console.log(user,'vinod');
         tx_id = client.newTransactionID();
         logger.debug(util.format('Sending transaction "%j"', tx_id));
         // send proposal to endorser

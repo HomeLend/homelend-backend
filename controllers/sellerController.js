@@ -5,6 +5,11 @@ const httpStatus = require('http-status-codes');
 const invokeChaincode = require('./hl/invoke-transaction');
 const logger = require('../lib/logger');
 const config = require('config');
+const helper = require('./hl/helper');
+const UsersCacheModel = db.model('UsersCache');
+const chaincodeName = config.get('lending_chaincode');
+const org_name = 'org_pocseller';
+
 /**
  *
  * @param req
@@ -15,36 +20,80 @@ const config = require('config');
  *
  */
 module.exports.advertise = (req, res) => {
-
-    const address = req.body.Address;
-    const price = req.body.SellingPrice;
-    const _id = req.decoded._id;
-    const body = {
-        Address: address,
-        SelingPrice: price,
+    const email = req.body.email;
+    const FirstName = req.body.FirstName;
+    const LastName = req.body.LastName;
+    const data = {
+        SellingPrice: "10000",
+        Address: 'dsdfds'
+    };
+    const sellerData = {
+        FirstName: FirstName,
+        LastName: LastName,
+        Email: email,
         Timestamp: Date.now()
     };
-    if (!address || !price) {
-        return res.status(httpStatus.BAD_REQUEST).send({ err: 'Invalid input paramteres' });
-    }
-    userModel.findById(_id).exec().then((user) => {
-        if (!user || !user.hash) {
-            return res.status(httpStatus.BAD_REQUEST).send({ err: 'Invalid request' });
-        }
-        body.SellerHash = user.hash;
-        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'advertise', [JSON.stringify(body)], 'admin', 'org_pocseller').then((response) => {
-            //Mongod code to be added
-            const property = new propertyModel(res);
-            return property.save().then((property) => {
-                if (!property) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: 'Something went wrong' });
-                } else {
-                    return res.send({ msg: 'Property added successfully' });
-                }
+    UsersCacheModel.findOne({email: email}).then((currentUser) => {
+        if (!currentUser) {
+            return registerSeller(email).then((registerResult) => {
+                return UsersCacheModel({
+                    email: email,
+                    password: registerResult.secret
+                }).save().then((user) => {
+                    if (!user) {
+                        return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
+                    }
+                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putSellerPersonalInfo', [JSON.stringify(buyerData)], org_name, email, registerResult.secret).then((response) => {
+                        if (!response) {
+                            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                        }
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'advertise', [JSON.stringify(data)], org_name, email, registerResult.secret).then((response) => {
+                            if (!response) {
+                                return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                            }
+                            return res.status(200).send(response);
+                        });
+                    });
+                });
             });
-        })
+        }
+        else {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'advertise', [JSON.stringify(data)], org_name, email, currentUser.password).then((response) => {
+                if (!response) {
+                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                }
+                return res.status(200).send(response);
+            });
+        }
     }).catch((err) => {
-        //TODO: Handling errors at one point and send proper error response is pending
-        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
+        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+    });
+};
+
+const registerSeller = (email) => {
+    const username = email;
+    const isJSON = true;
+    const attrs = [
+        {
+            'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
+            'hf.Registrar.DelegateRoles': 'client,user,validator,auditor',
+            'hf.Revoker': true,
+            'hf.IntermediateCA': true,
+            //user role can be customized
+            BasicRole: 'admin',
+            'hf.Registrar.Attributes': '*',
+        }];
+    const dept = 'mashreq' + '.department1';
+    const adminUsername = 'admin';
+    const adminPassword = 'adminpw';
+    return helper.registerUser(org_name, username, dept, attrs, adminUsername, adminPassword).then((result) => {
+        console.log(result);
+        const response = {};
+        response.secret = result.secret;
+        const buff = new Buffer(result.key.toBytes());
+        response.key = buff.toString('utf8');
+        response.certificate = result.certificate;
+        response.rootCertificate = result.rootCertificate;
+        return (response);
     });
 };
