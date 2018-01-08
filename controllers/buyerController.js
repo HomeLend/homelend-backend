@@ -6,9 +6,9 @@ const invokeChaincode = require('./hl/invoke-transaction');
 const logger = require('../lib/logger');
 const config = require('config');
 const helper = require('./hl/helper');
-
 const UsersCacheModel = db.model('UsersCache');
-
+const chaincodeName = config.get('lending_chaincode');
+const org_name = 'org_pocseller';
 
 /**
  * Function registers the request for the buyer
@@ -35,17 +35,14 @@ const UsersCacheModel = db.model('UsersCache');
  * @param {String} req.body.Status
  */
 
-
 module.exports.buy = (req, res) => {
-    const body = req.body;
-    body.Timestamp = Date.now();
     const email = req.body.email;
     const idNumber = req.body.idNumber;
     const idBase64 = req.body.idBase64;
     const FirstName = req.body.FirstName;
     const LastName = req.body.LastName;
     const data = {
-        PropertyHash: "ddfdfd",
+        PropertyHash: "test property hash",
     };
     const buyerData = {
         FirstName: FirstName,
@@ -65,11 +62,11 @@ module.exports.buy = (req, res) => {
                     if (!user) {
                         return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
                     }
-                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'putBuyerPersonalInfo', [JSON.stringify(buyerData)], 'org_pocbuyer', email, registerResult.secret).then((response) => {
+                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(buyerData)], org_name, email, registerResult.secret).then((response) => {
                         if (!response) {
                             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
                         }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(data)], 'org_pocbuyer', email, registerResult.secret).then((response) => {
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(data)], org_name, email, registerResult.secret).then((response) => {
                             if (!response) {
                                 return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
                             }
@@ -80,7 +77,7 @@ module.exports.buy = (req, res) => {
             });
         }
         else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'buy', [JSON.stringify(data)], 'org_pocbuyer', email, currentUser.password).then((response) => {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(data)], org_name, email, currentUser.password).then((response) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
                 }
@@ -94,7 +91,6 @@ module.exports.buy = (req, res) => {
 
 const registerBuyer = (email) => {
     const username = email;
-    const org = 'org_pocbuyer';
     const isJSON = true;
     const attrs = [
         {
@@ -109,7 +105,7 @@ const registerBuyer = (email) => {
     const dept = 'mashreq' + '.department1';
     const adminUsername = 'admin';
     const adminPassword = 'adminpw';
-    return helper.registerUser(org, username, dept, attrs, adminUsername, adminPassword).then((result) => {
+    return helper.registerUser(org_name, username, dept, attrs, adminUsername, adminPassword).then((result) => {
         console.log(result);
         const response = {};
         response.secret = result.secret;
@@ -121,34 +117,6 @@ const registerBuyer = (email) => {
     });
 };
 
-
-/**
- * Function inserts buyer's personal info
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @return {undefined}
- *
- * @param {String} req.body.ID
- * @param {String} req.body.FirstName
- * @param {String} req.body.LastName
- * @param {String} req.body.IDNumber
- * @param {String} req.body.IDBase64
- * @param {string} req.body.SalaryBase64
- *
- */
-
-module.exports.putBuyerPersonalInfo = (req, res) => {
-    const body = req.body;
-    body.Timestamp = Date.now();
-    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'putBuyerPersonalInfo', [JSON.stringify(body)], 'admin', 'org_pocseller').then((response) => {
-        return res.send(response);
-    }).catch((err) => {
-        console.log(err);
-    });
-};
-
-
 /**
  * Function returns list of offers from the bank
  *
@@ -159,9 +127,14 @@ module.exports.putBuyerPersonalInfo = (req, res) => {
  */
 
 module.exports.pullBankOffers = (req, res) => {
-    const body = {};
-    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'pullBankOffers', [JSON.stringify(body)], 'admin', 'org_pocseller').then((response) => {
-        return res.send(response);
+    const email = req.body.email;
+    UsersCacheModel.findOne({email: email}).then((currentUser) => {
+        if (!currentUser) {
+            return res.status(httpStatus.BAD_REQUEST).send({err: 'User not found'});
+        }
+        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'pullBankOffers', [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
+            return res.send(response);
+        });
     }).catch((err) => {
         console.log(err);
     });
