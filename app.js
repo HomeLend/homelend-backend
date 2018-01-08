@@ -24,6 +24,7 @@ const governmentRouter = require('./routes/governmentRouter');
 const insuranceRouter = require('./routes/insuranceRouter');
 const sellerRouter = require('./routes/sellerRouter');
 const authRouter = require('./routes/authRouter');
+const creditScoreRouter = require('./routes/creditScoreRouter');
 const app = express();
 
 app.use(morgan);
@@ -52,6 +53,7 @@ app.use(API + 'notification', notificationRouter);
 app.use(API + 'seller', sellerRouter);
 app.use(API + 'auth', authRouter);
 app.use(API + 'buyer', buyerRouter);
+app.use(API + 'creditscore', creditScoreRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

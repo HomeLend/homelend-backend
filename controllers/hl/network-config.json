@@ -42,6 +42,25 @@
         "key": "../../artifacts/crypto-config/peerOrganizations/pocbuyer.homelend.io/users/Admin@pocbuyer.homelend.io/msp/keystore",
         "cert": "../../artifacts/crypto-config/peerOrganizations/pocbuyer.homelend.io/users/Admin@pocbuyer.homelend.io/msp/signcerts"
       }
+    },
+    "org_poccreditscore": {
+      "name": "peerPOCCreditratingagency",
+      "mspid": "POCCreditRatingAgencyMSP",
+      "ca": "https://ca.poccreditratingagency.homelend.io:21054",
+      "peers": {
+        "peer0": {
+          "requests": "grpcs://peer0.poccreditratingagency.homelend.io:15051",
+          "events": "grpcs://peer0.poccreditratingagency.homelend.io:15053",
+          "server-hostname": "peer0.poccreditratingagency.homelend.io",
+          "tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/poccreditratingagency.homelend.io/peers/peer0.poccreditratingagency.homelend.io/tls/ca.crt"
+        }
+      },
+      "admin": {
+        "username": "admin",
+        "secret": "adminpw",
+        "key": "../../artifacts/crypto-config/peerOrganizations/poccreditratingagency.homelend.io/users/Admin@poccreditratingagency.homelend.io/msp/keystore",
+        "cert": "../../artifacts/crypto-config/peerOrganizations/poccreditratingagency.homelend.io/users/Admin@poccreditratingagency.homelend.io/msp/signcerts"
+      }
     }
   }
 }
