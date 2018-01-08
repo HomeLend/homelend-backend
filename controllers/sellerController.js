@@ -38,12 +38,13 @@ module.exports.advertise = (req, res) => {
             return registerSeller(email).then((registerResult) => {
                 return UsersCacheModel({
                     email: email,
-                    password: registerResult.secret
+                    password: registerResult.secret,
+                    type: 'seller'
                 }).save().then((user) => {
                     if (!user) {
                         return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
                     }
-                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putSellerPersonalInfo', [JSON.stringify(buyerData)], org_name, email, registerResult.secret).then((response) => {
+                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putSellerPersonalInfo', [JSON.stringify(sellerData)], org_name, email, registerResult.secret).then((response) => {
                         if (!response) {
                             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
                         }

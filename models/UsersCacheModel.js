@@ -15,6 +15,10 @@ const UsersCacheSchema = new Schema({
         type: String,
         required: true,
     },
+    type: {
+        type: String,
+        enum: ['buyer', 'seller']
+    },
     timestamp: {type: Date, default: Date.now},
 });
 

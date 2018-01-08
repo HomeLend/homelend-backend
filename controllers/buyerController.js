@@ -57,7 +57,8 @@ module.exports.buy = (req, res) => {
             return registerBuyer(email).then((registerResult) => {
                 return UsersCacheModel({
                     email: email,
-                    password: registerResult.secret
+                    password: registerResult.secret,
+                    type: 'buyer'
                 }).save().then((user) => {
                     if (!user) {
                         return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
