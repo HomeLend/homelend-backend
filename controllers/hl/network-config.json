@@ -27,11 +27,11 @@
     "org_pocbuyer": {
       "name": "peerPOCBuyer",
       "mspid": "POCBuyerMSP",
-      "ca": "https://ca.pocbuyer.homelend.io:13054",
+      "ca": "https://ca.pocbuyer.homelend.io:12054",
       "peers": {
         "peer0": {
-          "requests": "grpcs://peer0.pocbuyer.homelend.io:12051",
-          "events": "grpcs://peer0.pocbuyer.homelend.io:12053",
+          "requests": "grpcs://peer0.pocbuyer.homelend.io:11051",
+          "events": "grpcs://peer0.pocbuyer.homelend.io:11053",
           "server-hostname": "peer0.pocbuyer.homelend.io",
           "tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocbuyer.homelend.io/peers/peer0.pocbuyer.homelend.io/tls/ca.crt"
         }
