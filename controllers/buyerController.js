@@ -9,6 +9,20 @@ const helper = require('./hl/helper');
 const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_pocseller';
+const attrs = [
+    {
+        'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
+        'hf.Registrar.DelegateRoles': 'client,user,validator,auditor',
+        'hf.Revoker': true,
+        'hf.IntermediateCA': true,
+        //user role can be customized
+        BasicRole: 'admin',
+        'hf.Registrar.Attributes': '*',
+    }];
+const dept = 'mashreq' + '.department1';
+const adminUsername = 'admin';
+const adminPassword = 'adminpw';
+
 
 /**
  * Function registers the request for the buyer
@@ -52,13 +66,19 @@ module.exports.buy = (req, res) => {
         IDBase64: idBase64,
         Timestamp: Date.now()
     };
-    UsersCacheModel.findOne({email: email}).then((currentUser) => {
+    UsersCacheModel.findOne({email: email, type: 'buyer'}).then((currentUser) => {
         if (!currentUser) {
-            return registerBuyer(email).then((registerResult) => {
+            return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
+                if (!registerResult && !registerResult.secret) {
+                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem registering user'});
+                }
                 return UsersCacheModel({
                     email: email,
                     password: registerResult.secret,
-                    type: 'buyer'
+                    type: 'buyer',
+                    key: registerResult.key,
+                    certificate: registerResult.certificate,
+                    rootCertificate: registerResult.rootCertificate
                 }).save().then((user) => {
                     if (!user) {
                         return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
@@ -69,7 +89,7 @@ module.exports.buy = (req, res) => {
                         }
                         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(data)], org_name, email, registerResult.secret).then((response) => {
                             if (!response) {
-                                return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                                return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting buyer\'s request'});
                             }
                             return res.status(200).send(response);
                         });
@@ -87,34 +107,6 @@ module.exports.buy = (req, res) => {
         }
     }).catch((err) => {
         return res.status(httpStatus.BAD_REQUEST).send({err: err});
-    });
-};
-
-const registerBuyer = (email) => {
-    const username = email;
-    const isJSON = true;
-    const attrs = [
-        {
-            'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
-            'hf.Registrar.DelegateRoles': 'client,user,validator,auditor',
-            'hf.Revoker': true,
-            'hf.IntermediateCA': true,
-            //user role can be customized
-            BasicRole: 'admin',
-            'hf.Registrar.Attributes': '*',
-        }];
-    const dept = 'mashreq' + '.department1';
-    const adminUsername = 'admin';
-    const adminPassword = 'adminpw';
-    return helper.registerUser(org_name, username, dept, attrs, adminUsername, adminPassword).then((result) => {
-        console.log(result);
-        const response = {};
-        response.secret = result.secret;
-        const buff = new Buffer(result.key.toBytes());
-        response.key = buff.toString('utf8');
-        response.certificate = result.certificate;
-        response.rootCertificate = result.rootCertificate;
-        return (response);
     });
 };
 

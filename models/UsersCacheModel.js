@@ -11,13 +11,28 @@ const UsersCacheSchema = new Schema({
         required: true,
         unique: true,
     },
+    licenseNumber: {
+        type: String,
+    },
+    swiftNumber: {
+        type: String,
+    },
     password: {
         type: String,
         required: true,
     },
     type: {
         type: String,
-        enum: ['buyer', 'seller']
+        enum: ['buyer', 'seller', 'appraiser', 'bank', 'insurance', 'credit-rating']
+    },
+    key: {
+        type: String,
+    },
+    certificate: {
+        type: String,
+    },
+    rootCertificate: {
+        type: String,
     },
     timestamp: {type: Date, default: Date.now},
 });
