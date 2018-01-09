@@ -2,7 +2,7 @@ const db = require('../lib/db');
 const userModel = db.model('Users');
 const propertyModel = db.model('Properties');
 const httpStatus = require('http-status-codes');
-const { invokeChaincode } = require('./hl/invoke-transaction');
+const invokeChaincode = require('./hl/invoke-transaction');
 const logger = require('../lib/logger');
 const config = require('config');
 const helper = require('./hl/helper');
@@ -49,60 +49,65 @@ const adminPassword = 'adminpw';
  * @param {String} req.body.Status
  */
 
-module.exports.buy = async (req, res) => {
-    const { email, idNumber, idBase64, firstName, lastName } = req.body;
+module.exports.buy = (req, res) => {
+    const email = req.body.email;
+    const idNumber = req.body.idNumber;
+    const idBase64 = req.body.idBase64;
+    const FirstName = req.body.FirstName;
+    const LastName = req.body.LastName;
     const data = {
         PropertyHash: "test property hash",
     };
     const buyerData = {
-        FirstName: firstName,
-        LastName: lastName,
+        FirstName: FirstName,
+        LastName: LastName,
         Email: email,
         IDNumber: idNumber,
         IDBase64: idBase64,
         Timestamp: Date.now()
     };
-    try {
-        let currentUser = await UsersCacheModel.findOne({ email: email, type: 'buyer' });
-    
+    UsersCacheModel.findOne({email: email, type: 'buyer'}).then((currentUser) => {
         if (!currentUser) {
-            currentUser = await helper.register(org_name, email, attrs, dept, adminUsername, adminPassword)
-
-            if (!registerResult && !registerResult.secret) 
-                throw ' Problem registering user'
-            
-            const user = await UsersCacheModel({
-                email: email,
-                password: registerResult.secret,
-                type: 'buyer',
-                key: registerResult.key,
-                certificate: registerResult.certificate,
-                rootCertificate: registerResult.rootCertificate
-            }).save();
-            
-            if (!user) throw ' Problem saving the user'
-            
-            // Add user's personal info to the blockChain
-            let response = await invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(buyerData)], org_name, email, registerResult.secret);
-            if (!response) throw 'Problem saving the user inside blockchain'
-
-            // Add a buy order
-            response = await invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(data)], org_name, email, registerResult.secret)
-            if (!response) throw 'Problem putting buyer\'s request'
-
-            // If everything passed, return a normal response
-            return res.status(200).send(response);
+            return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
+                if (!registerResult && !registerResult.secret) {
+                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem registering user'});
+                }
+                return UsersCacheModel({
+                    email: email,
+                    password: registerResult.secret,
+                    type: 'buyer',
+                    key: registerResult.key,
+                    certificate: registerResult.certificate,
+                    rootCertificate: registerResult.rootCertificate
+                }).save().then((user) => {
+                    if (!user) {
+                        return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
+                    }
+                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(buyerData)], org_name, email, registerResult.secret).then((response) => {
+                        if (!response) {
+                            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                        }
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(data)], org_name, email, registerResult.secret).then((response) => {
+                            if (!response) {
+                                return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting buyer\'s request'});
+                            }
+                            return res.status(200).send(response);
+                        });
+                    });
+                });
+            });
         }
-        
-        // If the user is already registered, just add a buy order
-        let response = await invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(data)], org_name, email, currentUser.password)
-        if (!response) throw 'Problem saving the user inside blockchain'
-        
-        return res.status(200).send(response);
-    }
-    catch(err) {
-        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-    }
+        else {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(data)], org_name, email, currentUser.password).then((response) => {
+                if (!response) {
+                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                }
+                return res.status(200).send(response);
+            });
+        }
+    }).catch((err) => {
+        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+    });
 };
 
 /**
@@ -116,11 +121,11 @@ module.exports.buy = async (req, res) => {
 
 module.exports.pullBankOffers = (req, res) => {
     const email = req.body.email;
-    UsersCacheModel.findOne({ email: email }).then((currentUser) => {
+    UsersCacheModel.findOne({email: email}).then((currentUser) => {
         if (!currentUser) {
-            return res.status(httpStatus.BAD_REQUEST).send({ err: 'User not found' });
+            return res.status(httpStatus.BAD_REQUEST).send({err: 'User not found'});
         }
-        return invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'pullBankOffers', [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
+        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'pullBankOffers', [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
             return res.send(response);
         });
     }).catch((err) => {
@@ -151,7 +156,7 @@ module.exports.decline = (req, res) => {
 
 module.exports.uploadDocuments = (req, res) => {
     const body = {};
-    invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'putBuyerPersonalInfo', [JSON.stringify(body)], 'admin', 'org_pocseller').then((response) => {
+    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'putBuyerPersonalInfo', [JSON.stringify(body)], 'admin', 'org_pocseller').then((response) => {
         return res.send(response);
     }).catch((err) => {
         console.log(err);
@@ -229,12 +234,12 @@ const fetchAssetsForSale = () => [{
     price: 1000000,
     sellerIdnumber: '300019239'
 },
-{
-    hash: '111',
-    address: "P.O. Box 283 8562 Fusce Rd. Azusa New York 39531",
-    price: 2000000,
-    sellerIdnumber: '201327616'
-}
+    {
+        hash: '111',
+        address: "P.O. Box 283 8562 Fusce Rd. Azusa New York 39531",
+        price: 2000000,
+        sellerIdnumber: '201327616'
+    }
 ];
 
 module.exports.fetchAssetsForSale = fetchAssetsForSale;
@@ -259,7 +264,7 @@ module.exports.getAllAssets4Sale = (req, res) => {
 
 module.exports.getProperties = (req, res) => {
     const email = req.body.email;
-    UsersCacheModel.findOne({email: email, type: 'seller'}).then((currentUser) => {
+    UsersCacheModel.findOne({email: email, type: 'buyer'}).then((currentUser) => {
         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties', [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
             if (!response) {
                 return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting property'});
