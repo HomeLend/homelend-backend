@@ -34,20 +34,13 @@ const adminPassword = 'adminpw';
  *
  */
 module.exports.advertise = (req, res) => {
-    const data = {
-        SellingPrice: "10000",
-        Address: 'dsdfds'
-    };
     const email = req.body.email;
-    const FirstName = req.body.FirstName;
-    const LastName = req.body.LastName;
-    const idNumber = req.body.idNumber;
-    const sellerData = {
-        FirstName: FirstName,
-        LastName: LastName,
-        Email: email,
-        IDNumber: idNumber,
-        Timestamp: Date.now()
+    const address = req.body.address;
+    const sellingPrice = req.body.sellingPrice;
+
+    const data = {
+        Address: address,
+        SellingPrice: sellingPrice,
     };
     UsersCacheModel.findOne({email: email,type:'seller'}).then((currentUser) => {
         if (!currentUser) {
