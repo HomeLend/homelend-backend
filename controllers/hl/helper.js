@@ -439,7 +439,7 @@ var getLogger = function (moduleName) {
 };
 
 const register = (org_name, email, attrs, dept, adminUsername, adminPassword) => {
-    return registerUser(org_name, username, dept, attrs, adminUsername, adminPassword).then((result) => {
+    return registerUser(org_name, email, dept, attrs, adminUsername, adminPassword).then((result) => {
         const response = {};
         response.secret = result.secret;
         const buff = new Buffer(result.key.toBytes());
