@@ -3,6 +3,6 @@ const express = require('express');
 const router = express.Router();
 const creditScoreController = require('../controllers/creditScoreController');
 
-router.post('/calculate', creditScoreController.CalculateRating);
+router.post('/calculate', creditScoreController.calculateRating);
 
 module.exports = router;
