@@ -21,7 +21,7 @@ const attrs = [
 const dept = 'mashreq' + '.department1';
 const adminUsername = 'admin';
 const adminPassword = 'adminpw';
-module.exports.calculateRating = (req, res) => {
+module.exports.putOffer = (req, res) => {
     const Name = req.body.Name;
     const licenseNumber = req.body.licenseNumber;
     const requestHash = '';

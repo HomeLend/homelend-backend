@@ -3,7 +3,6 @@ const express = require('express');
 const router = express.Router();
 const appraiserController = require('../controllers/appraiserController');
 
-router.get('/confirmed-requests/:price/:propertyHash', appraiserController.getConfirmedRequests);
-router.post('/provide-price', appraiserController.providePrice);
+router.get('/put-offer', appraiserController.putOffer);
 
 module.exports = router;
