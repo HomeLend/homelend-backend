@@ -27,7 +27,9 @@ module.exports.calculateRating = (req, res) => {
     const FirstName = req.body.FirstName;
     const LastName = req.body.LastName;
     const idNumber = req.body.idNumber;
-    const appraiserOffer = {};
+    const requestHash = '';
+    const appraiserHash = '';
+    const appraiserAmount = '';
 
     const appraiserData = {
         FirstName: FirstName,
@@ -57,7 +59,7 @@ module.exports.calculateRating = (req, res) => {
                         if (!response) {
                             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the appraiser inside blockchain'});
                         }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [JSON.stringify(appraiserOffer)], org_name, email, registerResult.secret).then((response) => {
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserHash, appraiserAmount], org_name, email, registerResult.secret).then((response) => {
                             if (!response) {
                                 return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating appraiser offer'});
                             }
@@ -68,7 +70,7 @@ module.exports.calculateRating = (req, res) => {
             });
         }
         else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [JSON.stringify(appraiserOffer)], org_name, email, registerResult.secret).then((response) => {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserHash, appraiserAmount], org_name, email, registerResult.secret).then((response) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating appraiser offer'});
                 }

@@ -25,7 +25,8 @@ module.exports.calculateRating = (req, res) => {
     const Name = req.body.Name;
     const licenseNumber = req.body.licenseNumber;
     const requestHash = '';
-    const insuranceOffer = {};
+    const insuranceHash = '';
+    const insuranceAmount = '';
     const insuranceCompanyData = {
         Name: Name,
         LicenseNumber: licenseNumber
@@ -51,7 +52,7 @@ module.exports.calculateRating = (req, res) => {
                         if (!response) {
                             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the insurance company inside blockchain'});
                         }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateInsuranceOffers', [JSON.stringify(insuranceOffer)], org_name, licenseNumber, registerResult.secret).then((response) => {
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateInsuranceOffers', [requestHash, insuranceHash, insuranceAmount], org_name, licenseNumber, registerResult.secret).then((response) => {
                             if (!response) {
                                 return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating insurance offer'});
                             }
@@ -62,7 +63,7 @@ module.exports.calculateRating = (req, res) => {
             });
         }
         else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateInsuranceOffers', [JSON.stringify(insuranceOffer)], org_name, email, registerResult.secret).then((response) => {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateInsuranceOffers', [requestHash, insuranceHash, insuranceAmount], org_name, licenseNumber, registerResult.secret).then((response) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating insurance offer'});
                 }

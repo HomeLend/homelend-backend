@@ -25,6 +25,9 @@ module.exports.calculateRating = (req, res) => {
     const Name = req.body.Name;
     const swiftNumber = req.body.swiftNumber;
     const requestHash = '';
+    const bankHash = '';
+    const bankInterest = '';
+    const bankMonthlyAmount = '';
     const bankOffer = {};
     const bankData = {
         Name: Name,
@@ -51,7 +54,7 @@ module.exports.calculateRating = (req, res) => {
                         if (!response) {
                             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the bank inside blockchain'});
                         }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateBankOffers', [JSON.stringify(bankOffer)], org_name, swiftNumber, registerResult.secret).then((response) => {
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateBankOffers', [requestHash, bankHash, bankInterest, bankMonthlyAmount], org_name, swiftNumber, registerResult.secret).then((response) => {
                             if (!response) {
                                 return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating bank offer'});
                             }
@@ -62,7 +65,7 @@ module.exports.calculateRating = (req, res) => {
             });
         }
         else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateBankOffers', [JSON.stringify(bankOffer)], org_name, swiftNumber, registerResult.secret).then((response) => {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateBankOffers', [requestHash, bankHash, bankInterest, bankMonthlyAmount], org_name, swiftNumber, registerResult.secret).then((response) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating bank offer'});
                 }
