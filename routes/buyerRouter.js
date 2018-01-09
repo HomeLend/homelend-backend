@@ -4,7 +4,7 @@ const router = express.Router();
 const buyerController = require('../controllers/buyerController');
 
 router.get('/confirmed-requets', buyerController.getConfirmedRequests);
-
+router.get('/properties', buyerController.getProperties);
 router.post('/confirmed-requests', buyerController.buy);
 router.post('/confirm', buyerController.confirm);
 router.post('/decline', buyerController.decline);

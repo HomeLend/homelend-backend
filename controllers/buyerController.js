@@ -253,3 +253,25 @@ module.exports.fetchAssetsForSale = fetchAssetsForSale;
 module.exports.getAllAssets4Sale = (req, res) => {
     return res.send(fetchAssetsForSale());
 };
+
+
+/**
+ *
+ * @param req
+ * @param res
+ *
+ */
+
+module.exports.getProperties = (req, res) => {
+    const email = req.body.email;
+    UsersCacheModel.findOne({email: email, type: 'seller'}).then((currentUser) => {
+        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties', [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
+            if (!response) {
+                return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting property'});
+            }
+            return res.status(200).send(response);
+        });
+    }).catch((err) => {
+        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+    });
+};
