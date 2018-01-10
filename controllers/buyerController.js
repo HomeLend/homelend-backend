@@ -9,7 +9,7 @@ const config = require('config');
 const helper = require('./hl/helper');
 const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
-const org_name = 'org_pocseller';
+const org_name = 'org_pocbuyer';
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -94,7 +94,7 @@ module.exports.buy = (req, res) => {
             });
         }
         else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(data)], org_name, email, currentUser.password).then((response) => {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(buyData)], org_name, email, currentUser.password).then((response) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
                 }
