@@ -3,6 +3,7 @@ const userModel = db.model('Users');
 const propertyModel = db.model('Properties');
 const httpStatus = require('http-status-codes');
 const invokeChaincode = require('./hl/invoke-transaction');
+const queryChaincode = require('./hl/query');
 const logger = require('../lib/logger');
 const config = require('config');
 const helper = require('./hl/helper');
@@ -125,13 +126,37 @@ module.exports.pullBankOffers = (req, res) => {
         if (!currentUser) {
             return res.status(httpStatus.BAD_REQUEST).send({err: 'User not found'});
         }
-        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'pullBankOffers', [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
+        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'pullBankOffers', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
             return res.send(response);
         });
     }).catch((err) => {
         console.log(err);
     });
 };
+
+
+/**
+ * Function returns list of assets for sale
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @return {undefined}
+ *
+ */
+module.exports.getProperties4Sale = (req, res) => {
+    const email = req.get('email');
+    UsersCacheModel.findOne({email: email}).then((currentUser) => {
+        // if (!currentUser) {
+        //     return res.status(httpStatus.BAD_REQUEST).send({err: 'User not found'});
+        // }
+        return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName,"", 'getProperties4Sale','admin',org_name).then((response) => {
+            return res.send(response);
+        });
+    }).catch((err) => {
+        console.log(err);
+    });
+};
+
 
 
 module.exports.confirm = (req, res) => {
@@ -228,33 +253,6 @@ module.exports.acceptOfferFromInsurance = (req, res) => {
     });
 };
 
-const fetchAssetsForSale = () => [{
-    hash: '123',
-    address: "711-2880 Nulla St. Mankato Mississippi 96522",
-    price: 1000000,
-    sellerIdnumber: '300019239'
-},
-    {
-        hash: '111',
-        address: "P.O. Box 283 8562 Fusce Rd. Azusa New York 39531",
-        price: 2000000,
-        sellerIdnumber: '201327616'
-    }
-];
-
-module.exports.fetchAssetsForSale = fetchAssetsForSale;
-
-/**
- *
- * @param req
- * @param res
- *
- */
-module.exports.getAllAssets4Sale = (req, res) => {
-    return res.send(fetchAssetsForSale());
-};
-
-
 /**
  *
  * @param req
@@ -265,7 +263,7 @@ module.exports.getAllAssets4Sale = (req, res) => {
 module.exports.getProperties = (req, res) => {
     const email = req.body.email;
     UsersCacheModel.findOne({email: email, type: 'buyer'}).then((currentUser) => {
-        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties', [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
+        return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName,"", 'getProperties','admin', 'adminpw').then((response) => {
             if (!response) {
                 return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting property'});
             }

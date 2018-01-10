@@ -16,6 +16,6 @@ router.post('/accept-pffer-insurance', buyerController.acceptOfferFromInsurance)
 
 router.get('/list-appraisers', buyerController.listOfAppraisers);
 router.get('/list-insurance', buyerController.listOfInsuranceOffers);
-router.get('/assets4sale', buyerController.getAllAssets4Sale);
+router.get('/properties4Sale', buyerController.getProperties4Sale);
 
 module.exports = router;
