@@ -139,27 +139,20 @@ module.exports.pullBankOffers = (req, res) => {
 };
 
 
-/**
- * Function returns list of assets for sale
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @return {undefined}
- *
- */
-module.exports.getProperties4Sale = (req, res) => {
-    const email = req.get('email');
-    UsersCacheModel.findOne({email: email}).then((currentUser) => {
-        // if (!currentUser) {
-        //     return res.status(httpStatus.BAD_REQUEST).send({err: 'User not found'});
-        // }
-        return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, "", 'getProperties4Sale', 'admin', org_name).then((response) => {
-            return res.send(response);
-        });
-    }).catch((err) => {
-        console.log(err);
-    });
-};
+//
+// module.exports.getProperties4Sale = (req, res) => {
+//     const email = req.get('email');
+//     UsersCacheModel.findOne({email: email}).then((currentUser) => {
+//         // if (!currentUser) {
+//         //     return res.status(httpStatus.BAD_REQUEST).send({err: 'User not found'});
+//         // }
+//         return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, "", 'getProperties4Sale', 'admin', org_name).then((response) => {
+//             return res.send(response);
+//         });
+//     }).catch((err) => {
+//         console.log(err);
+//     });
+// };
 
 
 module.exports.confirm = (req, res) => {
@@ -278,9 +271,11 @@ module.exports.getProperties = (req, res) => {
 };
 
 /**
+ * Function returns list of assets for sale
  *
- * @param req
- * @param res
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @return {undefined}
  *
  */
 
@@ -290,6 +285,10 @@ module.exports.getProperties4Sale = (req, res) => {
         if (!response) {
             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
         }
-        return res.status(200).send(response);
+        const array=[];
+        for (let i = 0; i < response.length; i++) {
+            array.push(response[i].toString('utf8'));
+        }
+        return res.status(200).send(array);
     });
 };
