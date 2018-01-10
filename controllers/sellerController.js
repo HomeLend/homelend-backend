@@ -37,12 +37,15 @@ module.exports.advertise = (req, res) => {
     const email = req.body.email;
     const address = req.body.address;
     const sellingPrice = req.body.sellingPrice;
-
+    const ImageBase64 = req.body.imageBase64;
+    const sellerHash = req.body.sellerHash;
     const data = {
         Address: address,
         SellingPrice: sellingPrice,
+        ImageBase64: ImageBase64,
+        SellerHash: sellerHash
     };
-    UsersCacheModel.findOne({email: email,type:'seller'}).then((currentUser) => {
+    UsersCacheModel.findOne({email: email, type: 'seller'}).then((currentUser) => {
         if (!currentUser) {
             return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
                 if (!registerResult && !registerResult.secret) {
