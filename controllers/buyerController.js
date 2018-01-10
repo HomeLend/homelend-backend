@@ -52,20 +52,12 @@ const adminPassword = 'adminpw';
  */
 
 module.exports.buy = (req, res) => {
-    const email = req.body.email;
-    const idNumber = req.body.idNumber;
-    const idBase64 = req.body.idBase64;
-    const FirstName = req.body.FirstName;
-    const LastName = req.body.LastName;
-    const propertyHash = req.body.propertyHash;
-
+    const {email,idNumber,idBase64,fullName,propertyHash} = req.body
     const putBuyerPersonalInfoData = {
-        FirstName: FirstName,
-        LastName: LastName,
+        FullName: fullName,
         Email: email,
         IDNumber: idNumber + ``,
-        IDBase64: idBase64,
-        Timestamp: Date.now()
+        IDBase64: idBase64
     };
 
 
@@ -139,6 +131,7 @@ module.exports.pullBankOffers = (req, res) => {
         console.log(err);
     });
 };
+
 
 
 module.exports.confirm = (req, res) => {
@@ -267,7 +260,7 @@ module.exports.getProperties = (req, res) => {
 
 module.exports.getProperties4Sale = (req, res) => {
 
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'query', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
         if (!response) {
             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
         }
@@ -275,6 +268,6 @@ module.exports.getProperties4Sale = (req, res) => {
         for (let i = 0; i < response.length; i++) {
             array.push(response[i].toString('utf8'));
         }
-        return res.status(200).send(array);
+        return res.status(200).send(JSON.parse(array));
     });
 };

@@ -3,6 +3,6 @@ const express = require('express');
 const router = express.Router();
 const insuranceController = require('../controllers/sellerController');
 
-router.post('/confirmed-requests', insuranceController.advertise);
+router.post('/advertise', insuranceController.advertise);
 
 module.exports = router;
