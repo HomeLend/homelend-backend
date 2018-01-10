@@ -34,22 +34,25 @@ const adminPassword = 'adminpw';
  *
  */
 module.exports.advertise = (req, res) => {
-    const email = req.body.email;
-    const address = req.body.address;
-    const sellingPrice = req.body.sellingPrice;
-    const ImageBase64 = req.body.imageBase64;
-    const sellerHash = req.body.sellerHash;
+    const { fullName, iDNumber, email, address, sellingPrice, imageBase64 } = req.body;
+
+    const sellerData = {
+        FullName : fullName,
+        IDNumber : iDNumber,
+        Email : email
+    };
+
     const data = {
         Address: address,
         SellingPrice: sellingPrice,
-        ImageBase64: ImageBase64,
-        SellerHash: sellerHash
+        ImageBase64: ImageBase64
     };
-    UsersCacheModel.findOne({email: email, type: 'seller'}).then((currentUser) => {
+
+    UsersCacheModel.findOne({ email: email, type: 'seller' }).then((currentUser) => {
         if (!currentUser) {
             return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
                 if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem registering user'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering user' });
                 }
                 return UsersCacheModel({
                     email: email,
@@ -60,15 +63,15 @@ module.exports.advertise = (req, res) => {
                     rootCertificate: registerResult.rootCertificate
                 }).save().then((user) => {
                     if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
+                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
                     }
                     return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putSellerPersonalInfo', [JSON.stringify(sellerData)], org_name, email, registerResult.secret).then((response) => {
                         if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
                         }
                         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'advertise', [JSON.stringify(data)], org_name, email, registerResult.secret).then((response) => {
                             if (!response) {
-                                return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting property'});
+                                return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting property' });
                             }
                             return res.status(200).send(response);
                         });
@@ -79,13 +82,13 @@ module.exports.advertise = (req, res) => {
         else {
             return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'advertise', [JSON.stringify(data)], org_name, email, currentUser.password).then((response) => {
                 if (!response) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting property'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting property' });
                 }
                 return res.status(200).send(response);
             });
         }
     }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
     });
 };
 
