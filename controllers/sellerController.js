@@ -45,6 +45,8 @@ module.exports.advertise = (req, res) => {
     const data = {
         Address: address,
         SellingPrice: sellingPrice,
+        ImageBase64: ImageBase64,
+        SellerHash: sellerHash
     };
 
     UsersCacheModel.findOne({ email: email, type: 'seller' }).then((currentUser) => {
