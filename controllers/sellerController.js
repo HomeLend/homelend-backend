@@ -44,7 +44,7 @@ module.exports.advertise = (req, res) => {
 
     const data = {
         Address: address,
-        SellingPrice: sellingPrice,
+        SellingPrice: parseFloat(sellingPrice, 10),
         ImageBase64: imageBase64
     };
 
