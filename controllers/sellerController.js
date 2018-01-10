@@ -77,7 +77,7 @@ module.exports.advertise = (req, res) => {
                             }
                             // Emit a new list of the properties
                             socket().emitPropertiesList();
-                            return res.status(200).send(response);
+                            return res.status(200).send({newPropertyHash: response});
                         });
                     });
                 });
@@ -88,7 +88,9 @@ module.exports.advertise = (req, res) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting property'});
                 }
-                return res.status(200).send(response);
+                // Emit a new list of the properties
+                socket().emitPropertiesList();
+                return res.status(200).send({newPropertyHash: response});
             });
         }
     }).catch((err) => {
