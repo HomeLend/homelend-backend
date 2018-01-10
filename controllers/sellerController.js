@@ -9,6 +9,7 @@ const helper = require('./hl/helper');
 const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_pocseller';
+const uniqueString = require('unique-string');
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -35,15 +36,16 @@ const adminPassword = 'adminpw';
  */
 module.exports.advertise = (req, res) => {
 
-    const {fullName, idNumber, email, address, sellingPrice, imageBase64} = req.body;
-
+    const {firstName, lastName, idNumber, email, address, sellingPrice, imageBase64} = req.body;
     const sellerData = {
-        FullName: fullName,
+        FirstName: firstName,
+        lastName: lastName,
         IDNumber: idNumber,
         Email: email
     };
 
     const data = {
+        Hash: uniqueString(),
         Address: address,
         SellingPrice: parseFloat(sellingPrice),
         ImageBase64: imageBase64

@@ -8,6 +8,7 @@ const helper = require('./hl/helper');
 const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_pocappraiser';
+const uniqueString = require('unique-string');
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -28,7 +29,6 @@ module.exports.putOffer = (req, res) => {
     const LastName = req.body.LastName;
     const idNumber = req.body.idNumber;
     const requestHash = '';
-    const appraiserHash = '';
     const appraiserAmount = '';
 
     const appraiserData = {
@@ -50,7 +50,7 @@ module.exports.putOffer = (req, res) => {
                     type: 'appraiser',
                     key: registerResult.key,
                     certificate: registerResult.certificate,
-                    rootCertificate: registerResult.rootCertificate
+                    rootCertificate: registerResult.rootCertificate,
                 }).save().then((user) => {
                     if (!user) {
                         return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the appraiser'});
@@ -59,7 +59,7 @@ module.exports.putOffer = (req, res) => {
                         if (!response) {
                             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the appraiser inside blockchain'});
                         }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserHash, appraiserAmount], org_name, email, registerResult.secret).then((response) => {
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserAmount, uniqueString()], org_name, email, registerResult.secret).then((response) => {
                             if (!response) {
                                 return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating appraiser offer'});
                             }
@@ -70,7 +70,7 @@ module.exports.putOffer = (req, res) => {
             });
         }
         else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserHash, appraiserAmount], org_name, email, registerResult.secret).then((response) => {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserAmount, uniqueString()], org_name, email, registerResult.secret).then((response) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating appraiser offer'});
                 }
