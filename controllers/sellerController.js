@@ -10,6 +10,7 @@ const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_pocseller';
 const uniqueString = require('unique-string');
+const socket = require('../controllers/socket');
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -74,6 +75,8 @@ module.exports.advertise = (req, res) => {
                             if (!response) {
                                 return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting property'});
                             }
+                            // Emit a new list of the properties
+                            socket().emitPropertiesList();
                             return res.status(200).send(response);
                         });
                     });

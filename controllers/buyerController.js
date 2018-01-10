@@ -258,19 +258,14 @@ module.exports.getProperties = (req, res) => {
  *
  */
 
-module.exports.getProperties4Sale = (req, res) => {
+module.exports.getProperties4Sale = (cb) => {
 
     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
-        if (!response) {
-            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
-        }       
-         //we must handle error in more proper way
-        return res.status(200).send(JSON.parse(response[0].toString('utf8')));
+        if (!response)
+          throw 'Not a proper response for getProperties4Sale'
 
-        const array = [];
-        for (let i = 0; i < response.length; i++) {
-            array.push(response[i].toString('utf8'));
-        }
-        return res.status(200).send(JSON.parse(array));
+      let ret = response[0].toString('utf8');
+
+      cb(JSON.parse(ret));
     });
 };
