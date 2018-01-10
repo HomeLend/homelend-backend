@@ -34,7 +34,7 @@ const adminPassword = 'adminpw';
  *
  */
 module.exports.advertise = (req, res) => {
-    const { fullName, iDNumber, email, address, sellingPrice } = req.body;
+    const { fullName, iDNumber, email, address, sellingPrice, imageBase64 } = req.body;
 
     const sellerData = {
         FullName : fullName,
@@ -45,8 +45,7 @@ module.exports.advertise = (req, res) => {
     const data = {
         Address: address,
         SellingPrice: sellingPrice,
-        ImageBase64: ImageBase64,
-        SellerHash: sellerHash
+        ImageBase64: ImageBase64
     };
 
     UsersCacheModel.findOne({ email: email, type: 'seller' }).then((currentUser) => {
