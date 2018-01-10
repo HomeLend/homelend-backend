@@ -62,7 +62,7 @@ module.exports.buy = (req, res) => {
         FirstName: FirstName,
         LastName: LastName,
         Email: email,
-        IDNumber: idNumber,
+        IDNumber: idNumber + ``,
         IDBase64: idBase64,
         Timestamp: Date.now()
     };
@@ -71,11 +71,11 @@ module.exports.buy = (req, res) => {
     const buyData = {
         PropertyHash: propertyHash,
     };
-    UsersCacheModel.findOne({email: email, type: 'buyer'}).then((currentUser) => {
+    UsersCacheModel.findOne({ email: email, type: 'buyer' }).then((currentUser) => {
         if (!currentUser) {
             return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
                 if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem registering user'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering user' });
                 }
                 return UsersCacheModel({
                     email: email,
@@ -86,15 +86,15 @@ module.exports.buy = (req, res) => {
                     rootCertificate: registerResult.rootCertificate
                 }).save().then((user) => {
                     if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
+                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
                     }
                     return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(putBuyerPersonalInfoData)], org_name, email, registerResult.secret).then((response) => {
                         if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
                         }
                         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(buyData)], org_name, email, registerResult.secret).then((response) => {
                             if (!response) {
-                                return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting buyer\'s request'});
+                                return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting buyer\'s request' });
                             }
                             return res.status(200).send(response);
                         });
@@ -105,13 +105,13 @@ module.exports.buy = (req, res) => {
         else {
             return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(data)], org_name, email, currentUser.password).then((response) => {
                 if (!response) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
                 }
                 return res.status(200).send(response);
             });
         }
     }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
     });
 };
 
@@ -126,9 +126,9 @@ module.exports.buy = (req, res) => {
 
 module.exports.pullBankOffers = (req, res) => {
     const email = req.body.email;
-    UsersCacheModel.findOne({email: email}).then((currentUser) => {
+    UsersCacheModel.findOne({ email: email }).then((currentUser) => {
         if (!currentUser) {
-            return res.status(httpStatus.BAD_REQUEST).send({err: 'User not found'});
+            return res.status(httpStatus.BAD_REQUEST).send({ err: 'User not found' });
         }
         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'pullBankOffers', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
             return res.send(response);
@@ -138,21 +138,6 @@ module.exports.pullBankOffers = (req, res) => {
     });
 };
 
-
-//
-// module.exports.getProperties4Sale = (req, res) => {
-//     const email = req.get('email');
-//     UsersCacheModel.findOne({email: email}).then((currentUser) => {
-//         // if (!currentUser) {
-//         //     return res.status(httpStatus.BAD_REQUEST).send({err: 'User not found'});
-//         // }
-//         return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, "", 'getProperties4Sale', 'admin', org_name).then((response) => {
-//             return res.send(response);
-//         });
-//     }).catch((err) => {
-//         console.log(err);
-//     });
-// };
 
 
 module.exports.confirm = (req, res) => {
@@ -258,15 +243,15 @@ module.exports.acceptOfferFromInsurance = (req, res) => {
 
 module.exports.getProperties = (req, res) => {
     const email = req.body.email;
-    UsersCacheModel.findOne({email: email, type: 'buyer'}).then((currentUser) => {
+    UsersCacheModel.findOne({ email: email, type: 'buyer' }).then((currentUser) => {
         return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties', [JSON.stringify({})], org_name, currentUser.email, currentUser.password).then((response) => {
             if (!response) {
-                return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting property'});
+                return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting property' });
             }
             return res.status(200).send(response);
         });
     }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
     });
 };
 
@@ -283,7 +268,7 @@ module.exports.getProperties4Sale = (req, res) => {
 
     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'query', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
         if (!response) {
-            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
         }
         const array=[];
         for (let i = 0; i < response.length; i++) {
