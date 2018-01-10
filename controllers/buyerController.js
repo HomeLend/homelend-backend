@@ -63,8 +63,7 @@ module.exports.buy = (req, res) => {
         LastName: LastName,
         Email: email,
         IDNumber: idNumber + ``,
-        IDBase64: idBase64,
-        Timestamp: Date.now()
+        IDBase64: idBase64
     };
 
 

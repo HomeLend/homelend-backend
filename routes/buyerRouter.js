@@ -5,7 +5,7 @@ const buyerController = require('../controllers/buyerController');
 
 router.get('/confirmed-requets', buyerController.getConfirmedRequests);
 router.get('/properties', buyerController.getProperties);
-router.post('/confirmed-requests', buyerController.buy);
+router.post('/buy', buyerController.buy);
 router.post('/confirm', buyerController.confirm);
 router.post('/decline', buyerController.decline);
 router.post('/uploadDocuments', buyerController.uploadDocuments);
