@@ -10,7 +10,7 @@ module.exports = (io = null) => {
   // On user connection, join the connection to this room
   io.on('connection', socket => {
     socket.join('propertiesList room');
-    socket.emit('propertiesList', buyerController.fetchAssetsForSale())
+ //   socket.emit('propertiesList', buyerController.getProperties4Sale())
   });
 
   socket = io;
