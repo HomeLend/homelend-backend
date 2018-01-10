@@ -9,12 +9,8 @@ const config = require('config');
 const helper = require('./hl/helper');
 const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
-<<<<<<< HEAD
 const org_name = 'org_pocbuyer';
-=======
-const org_name = 'org_pocseller';
 const uniqueString = require('unique-string');
->>>>>>> 6cc47557497c936b89eb7b2c8bb02d927d0b72c2
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -267,7 +263,10 @@ module.exports.getProperties4Sale = (req, res) => {
     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
         if (!response) {
             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
-        }
+        }       
+         //we must handle error in more proper way
+        return res.status(200).send(JSON.parse(response[0].toString('utf8')));
+
         const array = [];
         for (let i = 0; i < response.length; i++) {
             array.push(response[i].toString('utf8'));

@@ -35,11 +35,9 @@ const adminPassword = 'adminpw';
  *
  */
 module.exports.advertise = (req, res) => {
-
-    const {firstName, lastName, idNumber, email, address, sellingPrice, imageBase64} = req.body;
+    const { fullName, idNumber, email, address, sellingPrice, imageBase64} = req.body;
     const sellerData = {
-        FirstName: firstName,
-        lastName: lastName,
+        FullName: fullName,
         IDNumber: idNumber,
         Email: email
     };
