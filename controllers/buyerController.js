@@ -56,16 +56,20 @@ module.exports.buy = (req, res) => {
     const idBase64 = req.body.idBase64;
     const FirstName = req.body.FirstName;
     const LastName = req.body.LastName;
-    const data = {
-        PropertyHash: "test property hash",
-    };
-    const buyerData = {
+    const propertyHash = req.body.propertyHash;
+
+    const putBuyerPersonalInfoData = {
         FirstName: FirstName,
         LastName: LastName,
         Email: email,
         IDNumber: idNumber,
         IDBase64: idBase64,
         Timestamp: Date.now()
+    };
+
+
+    const buyData = {
+        PropertyHash: propertyHash,
     };
     UsersCacheModel.findOne({email: email, type: 'buyer'}).then((currentUser) => {
         if (!currentUser) {
@@ -84,11 +88,11 @@ module.exports.buy = (req, res) => {
                     if (!user) {
                         return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
                     }
-                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(buyerData)], org_name, email, registerResult.secret).then((response) => {
+                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(putBuyerPersonalInfoData)], org_name, email, registerResult.secret).then((response) => {
                         if (!response) {
                             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
                         }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(data)], org_name, email, registerResult.secret).then((response) => {
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(buyData)], org_name, email, registerResult.secret).then((response) => {
                             if (!response) {
                                 return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting buyer\'s request'});
                             }
