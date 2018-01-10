@@ -53,13 +53,12 @@ const adminPassword = 'adminpw';
 module.exports.buy = (req, res) => {
     const {email,idNumber,idBase64,fullName,propertyHash,email} = req.body
     const putBuyerPersonalInfoData = {
-        FirstName: FirstName,
-        LastName: LastName,
+        FullName: fullName,
         Email: email,
         IDNumber: idNumber + ``,
         IDBase64: idBase64
     };
-    
+
     const buyData = {
         PropertyHash: propertyHash,
     };
