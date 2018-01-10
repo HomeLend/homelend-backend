@@ -24,6 +24,16 @@ const adminUsername = 'admin';
 const adminPassword = 'adminpw';
 
 
+function guid() {
+    function s4() {
+      return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+      s4() + '-' + s4() + s4() + s4();
+  }
+
 /**
  *
  * @param req
@@ -46,7 +56,8 @@ module.exports.advertise = (req, res) => {
     const data = {
         Address: address,
         SellingPrice: parseFloat(sellingPrice),
-        ImageBase64: imageBase64
+        ImageBase64: imageBase64,
+        Hash : guid()
     };
 
     UsersCacheModel.findOne({email: email, type: 'seller'}).then((currentUser) => {
