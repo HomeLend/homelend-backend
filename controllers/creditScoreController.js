@@ -8,6 +8,7 @@ const helper = require('./hl/helper');
 const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_poccreditratingagency';
+const uniqueString = require('unique-string');
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -29,7 +30,7 @@ module.exports.calculateRating = (req, res) => {
         Name: Name,
         LicenseNumber: licenseNumber
     };
-    UsersCacheModel.findOne({licenseNumber: licenseNumber,type:'credit-rating'}).then((currentUser) => {
+    UsersCacheModel.findOne({licenseNumber: licenseNumber, type: 'credit-rating'}).then((currentUser) => {
         if (!currentUser) {
             return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
                 if (!registerResult && !registerResult.secret) {
@@ -61,7 +62,7 @@ module.exports.calculateRating = (req, res) => {
             });
         }
         else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify({})], org_name, email, registerResult.secret).then((response) => {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating credit score'});
                 }

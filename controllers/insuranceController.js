@@ -8,6 +8,7 @@ const helper = require('./hl/helper');
 const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_pocinsurance';
+const uniqueString = require('unique-string');
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -25,12 +26,12 @@ module.exports.putOffer = (req, res) => {
     const Name = req.body.Name;
     const licenseNumber = req.body.licenseNumber;
     const requestHash = '';
-    const insuranceHash = '';
     const insuranceAmount = '';
     const insuranceCompanyData = {
         Name: Name,
         LicenseNumber: licenseNumber
     };
+
     UsersCacheModel.findOne({licenseNumber: licenseNumber, type: 'insurance'}).then((currentUser) => {
         if (!currentUser) {
             return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
@@ -52,7 +53,7 @@ module.exports.putOffer = (req, res) => {
                         if (!response) {
                             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the insurance company inside blockchain'});
                         }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateInsuranceOffers', [requestHash, insuranceHash, insuranceAmount], org_name, licenseNumber, registerResult.secret).then((response) => {
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateInsuranceOffers', [requestHash, insuranceAmount, uniqueString()], org_name, licenseNumber, registerResult.secret).then((response) => {
                             if (!response) {
                                 return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating insurance offer'});
                             }
@@ -63,7 +64,7 @@ module.exports.putOffer = (req, res) => {
             });
         }
         else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateInsuranceOffers', [requestHash, insuranceHash, insuranceAmount], org_name, licenseNumber, registerResult.secret).then((response) => {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateInsuranceOffers', [requestHash, insuranceAmount, uniqueString()], org_name, licenseNumber, currentUser.password).then((response) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating insurance offer'});
                 }

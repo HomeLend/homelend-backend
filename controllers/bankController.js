@@ -8,6 +8,7 @@ const helper = require('./hl/helper');
 const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_pocbank';
+const uniqueString = require('unique-string');
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -25,7 +26,6 @@ module.exports.calculateRating = (req, res) => {
     const Name = req.body.Name;
     const swiftNumber = req.body.swiftNumber;
     const requestHash = '';
-    const bankHash = '';
     const bankInterest = '';
     const bankMonthlyAmount = '';
     const bankOffer = {};
@@ -45,7 +45,7 @@ module.exports.calculateRating = (req, res) => {
                     type: 'bank',
                     key: registerResult.key,
                     certificate: registerResult.certificate,
-                    rootCertificate: registerResult.rootCertificate
+                    rootCertificate: registerResult.rootCertificate,
                 }).save().then((user) => {
                     if (!user) {
                         return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the bank'});
@@ -54,7 +54,7 @@ module.exports.calculateRating = (req, res) => {
                         if (!response) {
                             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the bank inside blockchain'});
                         }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateBankOffers', [requestHash, bankHash, bankInterest, bankMonthlyAmount], org_name, swiftNumber, registerResult.secret).then((response) => {
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateBankOffers', [requestHash, bankInterest, bankMonthlyAmount, uniqueString()], org_name, swiftNumber, registerResult.secret).then((response) => {
                             if (!response) {
                                 return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating bank offer'});
                             }
@@ -65,7 +65,7 @@ module.exports.calculateRating = (req, res) => {
             });
         }
         else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateBankOffers', [requestHash, bankHash, bankInterest, bankMonthlyAmount], org_name, swiftNumber, registerResult.secret).then((response) => {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateBankOffers', [requestHash, bankInterest, bankMonthlyAmount, uniqueString()], org_name, swiftNumber, currentUser.password).then((response) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating bank offer'});
                 }
