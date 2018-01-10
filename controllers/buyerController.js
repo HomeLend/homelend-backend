@@ -262,7 +262,7 @@ module.exports.acceptOfferFromInsurance = (req, res) => {
 module.exports.getProperties = (req, res) => {
     const email = req.body.email;
     UsersCacheModel.findOne({email: email, type: 'buyer'}).then((currentUser) => {
-        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties', [JSON.stringify({})], org_name, currentUser.email, currentUser.password).then((response) => {
+        return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties', [JSON.stringify({})], org_name, currentUser.email, currentUser.password).then((response) => {
             if (!response) {
                 return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting property'});
             }
@@ -282,7 +282,7 @@ module.exports.getProperties = (req, res) => {
 
 module.exports.getProperties4Sale = (req, res) => {
 
-    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'query', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'query', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
         if (!response) {
             return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
         }
