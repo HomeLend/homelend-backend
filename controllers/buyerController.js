@@ -52,7 +52,7 @@ const adminPassword = 'adminpw';
  */
 
 module.exports.buy = (req, res) => {
-    const {email,idNumber,idBase64,fullName,propertyHash} = req.body
+    const { email, idNumber, idBase64, fullName, propertyHash, sellerHash, salary, loanAmount } = req.body
     const putBuyerPersonalInfoData = {
         FullName: fullName,
         Email: email,
@@ -64,12 +64,15 @@ module.exports.buy = (req, res) => {
     const buyData = {
         Hash: uniqueString(),
         PropertyHash: propertyHash,
+        SellerHash: sellerHash,
+        Salary: salary,
+        LoanAmount: loanAmount
     };
-    UsersCacheModel.findOne({email: email, type: 'buyer'}).then((currentUser) => {
+    UsersCacheModel.findOne({ email: email, type: 'buyer' }).then((currentUser) => {
         if (!currentUser) {
             return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
                 if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem registering user'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering user' });
                 }
                 return UsersCacheModel({
                     email: email,
@@ -80,15 +83,15 @@ module.exports.buy = (req, res) => {
                     rootCertificate: registerResult.rootCertificate,
                 }).save().then((user) => {
                     if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
+                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
                     }
                     return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(putBuyerPersonalInfoData)], org_name, email, registerResult.secret).then((response) => {
                         if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
                         }
                         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(buyData)], org_name, email, registerResult.secret).then((response) => {
                             if (!response) {
-                                return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting buyer\'s request'});
+                                return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting buyer\'s request' });
                             }
                             return res.status(200).send(response);
                         });
@@ -99,13 +102,13 @@ module.exports.buy = (req, res) => {
         else {
             return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(buyData)], org_name, email, currentUser.password).then((response) => {
                 if (!response) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
                 }
                 return res.status(200).send(response);
             });
         }
     }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
     });
 };
 
@@ -120,9 +123,9 @@ module.exports.buy = (req, res) => {
 
 module.exports.pullBankOffers = (req, res) => {
     const email = req.body.email;
-    UsersCacheModel.findOne({email: email}).then((currentUser) => {
+    UsersCacheModel.findOne({ email: email }).then((currentUser) => {
         if (!currentUser) {
-            return res.status(httpStatus.BAD_REQUEST).send({err: 'User not found'});
+            return res.status(httpStatus.BAD_REQUEST).send({ err: 'User not found' });
         }
         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'pullBankOffers', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
             return res.send(response);
@@ -266,13 +269,25 @@ module.exports.getProperties = (req, res) => {
  *
  */
 
-module.exports.getProperties4Sale = (cb) => {
+module.exports.getProperties4Sale = (req, res) => {
     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
         if (!response)
-          throw 'Not a proper response for getProperties4Sale'
+            throw 'Not a proper response for getProperties4Sale'
 
-      let ret = response[0].toString('utf8');
+        let ret = response[0].toString('utf8');
 
-      cb(JSON.parse(ret));
+        return res.status(200).send(JSON.parse(ret));
+        cb(JSON.parse(ret));
+    });
+};
+
+module.exports.query = (req, res) => {
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'query', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+        if (!response)
+            throw 'Not a proper response for getProperties4Sale'
+
+        let ret = response[0].toString('utf8');
+
+        return res.status(200).send(JSON.parse(ret));
     });
 };

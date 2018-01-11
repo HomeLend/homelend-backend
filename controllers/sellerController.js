@@ -78,7 +78,7 @@ module.exports.advertise = (req, res) => {
                                 return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting property' });
                             }
                             // Emit a new list of the properties
-                            socket().emitPropertiesList();
+                            //socket().emitPropertiesList();
                             return res.status(200).send({newPropertyHash: response});
                         });
                     });
@@ -91,7 +91,7 @@ module.exports.advertise = (req, res) => {
                     return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting property' });
                 }
                 // Emit a new list of the properties
-                socket().emitPropertiesList();
+                //socket().emitPropertiesList();
                 return res.status(200).send({newPropertyHash: response});
             });
         }
