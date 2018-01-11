@@ -12,6 +12,7 @@ const org_name = 'org_pocseller';
 const uniqueString = require('unique-string');
 const queryChaincode = require('./hl/query');
 
+const socket = require('../controllers/socket');
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -76,7 +77,9 @@ module.exports.advertise = (req, res) => {
                             if (!response) {
                                 return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting property' });
                             }
-                            return res.status(200).send(response);
+                            // Emit a new list of the properties
+                            socket().emitPropertiesList();
+                            return res.status(200).send({newPropertyHash: response});
                         });
                     });
                 });
@@ -87,7 +90,9 @@ module.exports.advertise = (req, res) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting property' });
                 }
-                return res.status(200).send(response);
+                // Emit a new list of the properties
+                socket().emitPropertiesList();
+                return res.status(200).send({newPropertyHash: response});
             });
         }
     }).catch((err) => {

@@ -1,4 +1,11 @@
-const buyerController = require('../controllers/buyerController');
+const { getProperties4Sale } = require('../controllers/buyerController');
+
+
+const emitPropertiesList = () => {
+  getProperties4Sale(res => {
+    socket.emit('propertiesList', res)
+  })
+}
 
 let socket = {};
 
@@ -10,9 +17,13 @@ module.exports = (io = null) => {
   // On user connection, join the connection to this room
   io.on('connection', socket => {
     socket.join('propertiesList room');
- //   socket.emit('propertiesList', buyerController.getProperties4Sale())
+    emitPropertiesList()
   });
 
   socket = io;
+
+  socket.emitPropertiesList = emitPropertiesList;
+
+  console.log("socket", socket);
 
 }
