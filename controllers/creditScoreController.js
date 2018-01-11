@@ -23,21 +23,21 @@ const dept = 'mashreq' + '.department1';
 const adminUsername = 'admin';
 const adminPassword = 'adminpw';
 module.exports.calculateRating = (req, res) => {
-    const Name = req.body.Name;
-    const licenseNumber = req.body.licenseNumber;
+    const { name, licenseNumber } = req.body;
+
     const requestHash = '';
     const creditRatingAgencyData = {
-        Name: Name,
+        Name: name,
         LicenseNumber: licenseNumber
     };
-    UsersCacheModel.findOne({licenseNumber: licenseNumber, type: 'credit-rating'}).then((currentUser) => {
+    UsersCacheModel.findOne({ email: licenseNumber, type: 'credit-rating' }).then((currentUser) => {
         if (!currentUser) {
-            return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
+            return helper.register(org_name, licenseNumber, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
                 if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem registering agency'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering agency' });
                 }
                 return UsersCacheModel({
-                    licenseNumber: licenseNumber,
+                    email: licenseNumber,
                     password: registerResult.secret,
                     type: 'credit-rating',
                     key: registerResult.key,
@@ -45,15 +45,15 @@ module.exports.calculateRating = (req, res) => {
                     rootCertificate: registerResult.rootCertificate
                 }).save().then((user) => {
                     if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the agency'});
+                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the agency' });
                     }
                     return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putCreditRatingAgencyInfo', [JSON.stringify(creditRatingAgencyData)], org_name, licenseNumber, registerResult.secret).then((response) => {
                         if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the agency inside blockchain'});
+                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the agency inside blockchain' });
                         }
                         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [requestHash], org_name, licenseNumber, registerResult.secret).then((response) => {
                             if (!response) {
-                                return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating credit score'});
+                                return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating credit score' });
                             }
                             return res.status(200).send(response);
                         });
@@ -64,12 +64,12 @@ module.exports.calculateRating = (req, res) => {
         else {
             return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
                 if (!response) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating credit score'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating credit score' });
                 }
                 return res.status(200).send(response);
             });
         }
     }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
     });
 };

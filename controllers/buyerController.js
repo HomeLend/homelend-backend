@@ -234,18 +234,26 @@ module.exports.acceptOfferFromInsurance = (req, res) => {
  * @param res
  *
  */
-
 module.exports.getProperties = (req, res) => {
     const email = req.body.email;
-    UsersCacheModel.findOne({email: email, type: 'buyer'}).then((currentUser) => {
-        return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties', [JSON.stringify({})], org_name, currentUser.email, currentUser.password).then((response) => {
-            if (!response) {
-                return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem putting property'});
-            }
-            return res.status(200).send(response);
-        });
-    }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+
+    UsersCacheModel.findOne({ email: email, type: 'buyer' }).then((currentUser) => {
+        if (!currentUser) {
+
+            return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties', [JSON.stringify({})], org_name, email, registerResult.secret).then((response) => {
+                if (!response) {
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
+                }
+                //we must handle error in more proper way
+                return res.status(200).send(JSON.parse(response[0].toString('utf8')));
+
+                const array = [];
+                for (let i = 0; i < response.length; i++) {
+                    array.push(response[i].toString('utf8'));
+                }
+                return res.status(200).send(JSON.parse(array));
+            });
+        }
     });
 };
 
@@ -257,7 +265,6 @@ module.exports.getProperties = (req, res) => {
  * @return {undefined}
  *
  */
-
 module.exports.getProperties4Sale = (req, res) => {
 
     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {

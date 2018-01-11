@@ -43,7 +43,7 @@
         "cert": "../../artifacts/crypto-config/peerOrganizations/pocbuyer.homelend.io/users/Admin@pocbuyer.homelend.io/msp/signcerts"
       }
     },
-    "org_poccreditscore": {
+    "org_poccreditratingagency": {
       "name": "peerPOCCreditratingagency",
       "mspid": "POCCreditRatingAgencyMSP",
       "ca": "https://ca.poccreditratingagency.homelend.io:21054",
