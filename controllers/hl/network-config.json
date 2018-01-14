@@ -61,6 +61,25 @@
         "key": "../../artifacts/crypto-config/peerOrganizations/poccreditratingagency.homelend.io/users/Admin@poccreditratingagency.homelend.io/msp/keystore",
         "cert": "../../artifacts/crypto-config/peerOrganizations/poccreditratingagency.homelend.io/users/Admin@poccreditratingagency.homelend.io/msp/signcerts"
       }
+    },
+    "org_pocbank": {
+      "name": "peerPOCBank",
+      "mspid": "POCBankMSP",
+      "ca": "https://ca.pocbank.homelend.io:7054",
+      "peers": {
+        "peer0": {
+          "requests": "grpcs://peer0.pocbank.homelend.io:7051",
+          "events": "grpcs://peer0.pocbank.homelend.io:7053",
+          "server-hostname": "peer0.pocbank.homelend.io",
+          "tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocbank.homelend.io/peers/peer0.pocbank.homelend.io/tls/ca.crt"
+        }
+      },
+      "admin": {
+        "username": "admin",
+        "secret": "adminpw",
+        "key": "../../artifacts/crypto-config/peerOrganizations/pocbank.homelend.io/users/Admin@pocbank.homelend.io/msp/keystore",
+        "cert": "../../artifacts/crypto-config/peerOrganizations/pocbank.homelend.io/users/Admin@pocbank.homelend.io/msp/signcerts"
+      }
     }
   }
 }

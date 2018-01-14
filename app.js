@@ -57,6 +57,7 @@ app.use(API + 'appraiser', appraiserRouter);
 app.use(API + 'government', governmentRouter);
 app.use(API + 'insurance', insuranceRouter);
 app.use(API + 'creditscore', creditScoreRouter);
+app.use(API + 'bank', bankRouter);
 
 
 
