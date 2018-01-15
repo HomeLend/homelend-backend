@@ -1,3 +1,5 @@
+import { try } from '../../../Users/ran/AppData/Local/Microsoft/TypeScript/2.6/node_modules/@types/bluebird';
+
 const db = require('../lib/db');
 const httpStatus = require('http-status-codes');
 const invokeChaincode = require('./hl/invoke-transaction');
@@ -134,8 +136,8 @@ module.exports.pullPendingRequests = (req, res) => {
 
 
 module.exports.putEstimation = (req, res) => {
-    const { email,buyerHash,requestHash,amount } = req.body;
-    return runMethodWithIdentity(req,res,"appraiserProvideAmount",[buyerHash,requestHash,amount + ``],email)
+    const { email, buyerHash, requestHash, amount } = req.body;
+    return runMethodWithIdentity(req, res, "appraiserProvideAmount", [buyerHash, requestHash, amount + ``], email)
 };
 
 
@@ -147,7 +149,7 @@ const runQueryWithIdentity = (req, res, email, queryName) => {
             return res.status(httpStatus.BAD_REQUEST).send({ err: 'User not found' });
         }
 
-        return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, queryName, [JSON.stringify({})], org_name,email, currentUser.password).then((response) => {
+        return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, queryName, [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
             if (!response)
                 throw 'Not a proper response for ' + queryName
 
@@ -158,20 +160,21 @@ const runQueryWithIdentity = (req, res, email, queryName) => {
 };
 
 
-const runMethodWithIdentity = (req, res, methodName, data, email) => {
-    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
+const runMethodWithIdentity = async (req, res, methodName, data, email) => {
+    try {
+        const currentUser = await UsersCacheModel.findOne({ email: email, type: 'appraiser' })
         if (!currentUser) {
             return res.status(400).send('user was not found');
         }
         else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password).then((response) => {
-                if (!response) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem executing ' + methodName });
-                }
-                return res.status(200).send(response);
-            });
+            const response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password)
+            if (!response) {
+                throw 'Problem executing ' + methodName
+            }
+            return res.status(200).send(response);
         }
-    }).catch((err) => {
+    }
+    catch (err) {
         return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-    });
+    }
 };
