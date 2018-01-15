@@ -85,49 +85,76 @@ const runMethodAndRegister = async (req, res, methodName, data, userData) => {
     }
 };
 
-/**
- * Function returns list of offers from the bank
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @return {undefined}
- *
- */
+const runMethodWithIdentity = (req, res, methodName, data, email) => {
+    UsersCacheModel.findOne({ email: email, type: 'buyer' }).then((currentUser) => {
+        if (!currentUser) {
+            return res.status(400).send('user was not found');
+        }
+        else {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password).then((response) => {
+                if (!response) {
+                    return res.status(400).send({ err: ' Problem executing ' + methodName });
+                }
+                return res.status(200).send(response);
+            });
+        }
+    }).catch((err) => {
+        return res.status(400).send({ err: err });
+    });
+};
 
-module.exports.pullBankOffers = (req, res) => {
-    const email = req.body.email;
-    UsersCacheModel.findOne({ email: email }).then((currentUser) => {
+const runQueryWithIdentity = (req, res, email, queryName) => {
+    UsersCacheModel.findOne({ email: email, type: 'buyer' }).then((currentUser) => {
         if (!currentUser) {
             return res.status(httpStatus.BAD_REQUEST).send({ err: 'User not found' });
         }
-        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'pullBankOffers', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
-            return res.send(response);
+
+        return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, queryName, [JSON.stringify({})], org_name,email, currentUser.password).then((response) => {
+            if (!response)
+                throw 'Not a proper response for ' + queryName
+
+            let ret = response[0].toString('utf8');
+            return res.status(200).send(JSON.parse(ret));
         });
-    }).catch((err) => {
-        console.log(err);
     });
 };
 
 
 
-module.exports.confirm = (req, res) => {
-    const _id = req.body.propertyHash;
-    const creditScore = req.body.creditScore;
-    const body = {
-        _id: _id,
-        creditScore: creditScore,
-        status: 'CREDIT_SCORE_CONFIRMED',
-        txHash: '12321213213212321312',
+module.exports.buy = (req, res) => {
+
+    const { email, idNumber, idBase64, fullName, propertyHash, sellerHash, salary, loanAmount } = req.body
+    const putBuyerPersonalInfoData = {
+        FullName: fullName,
+        Email: email,
+        IDNumber: idNumber + ``,
+        IDBase64: idBase64
     };
-    return res.send(body);
+
+
+    const buyData = {
+        Hash: uniqueString(),
+        PropertyHash: propertyHash,
+        SellerHash: sellerHash,
+        Salary: salary,
+        LoanAmount: loanAmount
+    };
+
+    return runMethodAndRegister(req, res, 'buy', [JSON.stringify(buyData)], putBuyerPersonalInfoData);
 };
 
-module.exports.decline = (req, res) => {
-    return {
-        _id: req.decoded._id,
-        txHash: '12312321312213123231',
-        status: 'DECLINED',
-    };
+module.exports.getMyRequests = (req, res) => {
+    const email = req.query.email;
+    return runQueryWithIdentity(req, res, email, 'buyerGetMyRequests');
+};
+
+module.exports.selectBankOffer = (req, res) => {
+    const { email, requestHash, selectedBankOfferHash } = req.body
+    const data = [
+        requestHash, selectedBankOfferHash
+    ];
+
+    return runMethodWithIdentity(req, res, 'buyerSelectBankOffer', data, email);
 };
 
 module.exports.uploadDocuments = (req, res) => {
@@ -169,10 +196,15 @@ module.exports.acceptOfferFromBank = (req, res) => {
 
 // list of appraiser
 module.exports.listOfAppraisers = (req, res) => {
-    return res.send([{
-        name: 'asdad',
-        address: 'asdada'
-    }]);
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buyerGetAllAppraisers', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+        if (!response)
+            throw 'Not a proper response for getProperties4Sale'
+
+        let ret = response[0].toString('utf8');
+
+        return res.status(200).send(JSON.parse(ret));
+        cb(JSON.parse(ret));
+    });
 };
 
 // list of insurance offers with the price
@@ -185,13 +217,13 @@ module.exports.listOfInsuranceOffers = (req, res) => {
     ]);
 };
 
-module.exports.chooseAppraiser = (req, res) => {
-    const appraiserId = req.body.appraiserId;
+module.exports.selectAppraiser = (req, res) => {
+    const { email, appraiserHash, requestHash } = req.body
+    const data = [
+        requestHash, appraiserHash
+    ];
 
-    return res.send({
-        name: 'adssa',
-        status: 'APPRAISER_CHOSEN'
-    });
+    return runMethodWithIdentity(req, res, 'buyerSelectAppraiser', data, email);
 };
 
 module.exports.acceptOfferFromInsurance = (req, res) => {
@@ -233,14 +265,6 @@ module.exports.getProperties = (req, res) => {
     });
 };
 
-/**
- * Function returns list of assets for sale
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @return {undefined}
- *
- */
 
 module.exports.getProperties4Sale = (req, res) => {
     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {

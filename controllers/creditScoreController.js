@@ -30,7 +30,6 @@ module.exports.calculateRating = (req, res) => {
     if(score>0.66)  score = "A"; else
     if(score>0.33)  score = "B"; else
                     score = "C";
-
     const creditRatingAgencyData = {
         Name: name,
         LicenseNumber: licenseNumber
@@ -61,7 +60,7 @@ module.exports.calculateRating = (req, res) => {
                         if (!response) {
                             return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the agency inside blockchain' });
                         }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify(creditScorePayload),score], org_name, licenseNumber, registerResult.secret).then((response) => {
+                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify(creditScorePayload)], org_name, licenseNumber, registerResult.secret).then((response) => {
                             if (!response) {
                                 return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating credit score' });
                             }
@@ -72,7 +71,7 @@ module.exports.calculateRating = (req, res) => {
             });
         }
         else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify(creditScorePayload),"C"], org_name, licenseNumber, currentUser.password).then((response) => {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify(creditScorePayload)], org_name, licenseNumber, currentUser.password).then((response) => {
                 if (!response) {
                     return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating credit score' });
                 }
