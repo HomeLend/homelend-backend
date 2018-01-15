@@ -80,6 +80,82 @@
         "key": "../../artifacts/crypto-config/peerOrganizations/pocbank.homelend.io/users/Admin@pocbank.homelend.io/msp/keystore",
         "cert": "../../artifacts/crypto-config/peerOrganizations/pocbank.homelend.io/users/Admin@pocbank.homelend.io/msp/signcerts"
       }
+    },
+    "org_pocappraiser": {
+      "name": "peerPOCAppraiserMSP",
+      "mspid": "POCAppraiserMSP",
+      "ca": "https://ca.pocappraiser.homelend.io:9054",
+      "peers": {
+        "peer0": {
+          "requests": "grpcs://peer0.pocappraiser.homelend.io:9051",
+          "events": "grpcs://peer0.pocappraiser.homelend.io:9053",
+          "server-hostname": "peer0.pocappraiser.homelend.io",
+          "tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocappraiser.homelend.io/peers/peer0.pocappraiser.homelend.io/tls/ca.crt"
+        }
+      },
+      "admin": {
+        "username": "admin",
+        "secret": "adminpw",
+        "key": "../../artifacts/crypto-config/peerOrganizations/pocappraiser.homelend.io/users/Admin@pocappraiser.homelend.io/msp/keystore",
+        "cert": "../../artifacts/crypto-config/peerOrganizations/pocappraiser.homelend.io/users/Admin@pocappraiser.homelend.io/msp/signcerts"
+      }
+    },
+    "org_pocgovernment": {
+      "name": "peerPOCGovernmentMSP",
+      "mspid": "POCGovernmentMSP",
+      "ca": "https://ca.pocgovernment.homelend.io:10054",
+      "peers": {
+        "peer0": {
+          "requests": "grpcs://peer0.pocgovernment.homelend.io:10051",
+          "events": "grpcs://peer0.pocgovernment.homelend.io:10053",
+          "server-hostname": "peer0.pocgovernment.homelend.io",
+          "tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocgovernment.homelend.io/peers/peer0.pocgovernment.homelend.io/tls/ca.crt"
+        }
+      },
+      "admin": {
+        "username": "admin",
+        "secret": "adminpw",
+        "key": "../../artifacts/crypto-config/peerOrganizations/pocgovernment.homelend.io/users/Admin@pocgovernment.homelend.io/msp/keystore",
+        "cert": "../../artifacts/crypto-config/peerOrganizations/pocgovernment.homelend.io/users/Admin@pocgovernment.homelend.io/msp/signcerts"
+      }
+    },
+    "org_pochomelend": {
+      "name": "peerPOCHomelendMSP",
+      "mspid": "POCHomelendMSP",
+      "ca": "https://ca.pochomelend.homelend.io:11054",
+      "peers": {
+        "peer0": {
+          "requests": "grpcs://peer0.pochomelend.homelend.io:13051",
+          "events": "grpcs://peer0.pochomelend.homelend.io:13053",
+          "server-hostname": "peer0.pochomelend.homelend.io",
+          "tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pochomelend.homelend.io/peers/peer0.pochomelend.homelend.io/tls/ca.crt"
+        }
+      },
+      "admin": {
+        "username": "admin",
+        "secret": "adminpw",
+        "key": "../../artifacts/crypto-config/peerOrganizations/pochomelend.homelend.io/users/Admin@pochomelend.homelend.io/msp/keystore",
+        "cert": "../../artifacts/crypto-config/peerOrganizations/pochomelend.homelend.io/users/Admin@pochomelend.homelend.io/msp/signcerts"
+      }
+    },
+    "org_pocinsurance": {
+      "name": "peerPOCInsuranceMSP",
+      "mspid": "POCInsuranceMSP",
+      "ca": "https://ca.pocinsurance.homelend.io:8054",
+      "peers": {
+        "peer0": {
+          "requests": "grpcs://peer0.pocinsurance.homelend.io:8051",
+          "events": "grpcs://peer0.pocinsurance.homelend.io:8053",
+          "server-hostname": "peer0.pocinsurance.homelend.io",
+          "tls_cacerts": "../../artifacts/crypto-config/peerOrganizations/pocinsurance.homelend.io/peers/peer0.pocinsurance.homelend.io/tls/ca.crt"
+        }
+      },
+      "admin": {
+        "username": "admin",
+        "secret": "adminpw",
+        "key": "../../artifacts/crypto-config/peerOrganizations/pocinsurance.homelend.io/users/Admin@pocinsurance.homelend.io/msp/keystore",
+        "cert": "../../artifacts/crypto-config/peerOrganizations/pocinsurance.homelend.io/users/Admin@pocinsurance.homelend.io/msp/signcerts"
+      }
     }
   }
 }
