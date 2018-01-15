@@ -1,9 +1,17 @@
-const { getProperties4Sale } = require('../controllers/buyerController');
+const { getProperties4SaleSocket } = require('../controllers/buyerController');
+const { getCreditRatingListSocket } = require('../controllers/creditScoreController');
 
 
 const emitPropertiesList = () => {
-  getProperties4Sale(res => {
+  getProperties4SaleSocket(res => {
     socket.emit('propertiesList', res)
+  })
+}
+
+const emitCreditRatingList = () => {
+  console.log("Got it");
+  getCreditRatingListSocket(res => {
+    socket.emit('CreditRatingList', res)
   })
 }
 
@@ -18,12 +26,11 @@ module.exports = (io = null) => {
   io.on('connection', socket => {
     socket.join('propertiesList room');
     emitPropertiesList()
+    socket.on('getCreditRankList', emitCreditRatingList)
   });
 
   socket = io;
 
   socket.emitPropertiesList = emitPropertiesList;
-
-  console.log("socket", socket);
 
 }

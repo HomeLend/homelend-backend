@@ -240,8 +240,8 @@ const registerUser = function (userOrg, username, affiliation, attrs, adminusern
     }).then((result) => {
         result.secret = usersecret;
         return result;
-    }, (err) => {
-        return err;
+    }).catch((err) => {
+        throw "Take a look at helper.js - registerUser " + err.message;
     });
 };
 
@@ -438,16 +438,20 @@ var getLogger = function (moduleName) {
     return logger;
 };
 
-const register = (org_name, email, attrs, dept, adminUsername, adminPassword) => {
-    return registerUser(org_name, email, dept, attrs, adminUsername, adminPassword).then((result) => {
-        const response = {};
-        response.secret = result.secret;
-        const buff = new Buffer(result.key.toBytes());
-        response.key = buff.toString('utf8');
-        response.certificate = result.certificate;
-        response.rootCertificate = result.rootCertificate;
-        return (response);
-    });
+const register = async (org_name, email, attrs, dept, adminUsername, adminPassword) => {
+    try {
+			const result = await registerUser(org_name, email, dept, attrs, adminUsername, adminPassword);
+			const response = {};
+			response.secret = result.secret;
+			const buff = new Buffer(result.key.toBytes());
+			response.key = buff.toString('utf8');
+			response.certificate = result.certificate;
+			response.rootCertificate = result.rootCertificate;
+			return (response);
+		}
+		catch (err) {
+        console.log("Oops, problem at register controller at helper.js", err);
+    }
 };
 
 exports.getChannelForOrg = getChannelForOrg;

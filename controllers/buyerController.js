@@ -51,65 +51,38 @@ const adminPassword = 'adminpw';
  * @param {String} req.body.Status
  */
 
-module.exports.buy = (req, res) => {
-    const { email, idNumber, idBase64, fullName, propertyHash, sellerHash, salary, loanAmount } = req.body
-    const putBuyerPersonalInfoData = {
-        FullName: fullName,
-        Email: email,
-        IDNumber: idNumber + ``,
-        IDBase64: idBase64
-    };
+const runMethodAndRegister = async (req, res, methodName, data, userData) => {
+	const email = String(userData.email).toLowerCase();
+  const type = 'buyer';
 
+  try {
+      const currentUser = await UsersCacheModel.findOne({email, type});
+      if (!currentUser) {
+        const registerResult = await helper.register(org_name, email, attrs, dept, adminUsername, adminPassword)
+          if (!registerResult && !registerResult.secret) throw 'Problem registering user';
+          const user = await UsersCacheModel({
+            email, type,
+						password: registerResult.secret,
+            key: registerResult.key,
+            certificate: registerResult.certificate,
+            rootCertificate: registerResult.rootCertificate,
+          }).save();
+          if (!user) throw 'Problem saving the user';
+          let response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(userData)], org_name, email, registerResult.secret)
+          if (!response) throw 'Problem saving the user inside blockchain';
 
-    const buyData = {
-        Hash: uniqueString(),
-        PropertyHash: propertyHash,
-        SellerHash: sellerHash,
-        Salary: salary,
-        LoanAmount: loanAmount
-    };
-    UsersCacheModel.findOne({ email: email, type: 'buyer' }).then((currentUser) => {
-        if (!currentUser) {
-            return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
-                if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering user' });
-                }
-                return UsersCacheModel({
-                    email: email,
-                    password: registerResult.secret,
-                    type: 'buyer',
-                    key: registerResult.key,
-                    certificate: registerResult.certificate,
-                    rootCertificate: registerResult.rootCertificate,
-                }).save().then((user) => {
-                    if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
-                    }
-                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(putBuyerPersonalInfoData)], org_name, email, registerResult.secret).then((response) => {
-                        if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
-                        }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(buyData)], org_name, email, registerResult.secret).then((response) => {
-                            if (!response) {
-                                return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting buyer\'s request' });
-                            }
-                            return res.status(200).send(response);
-                        });
-                    });
-                });
-            });
-        }
-        else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buy', [JSON.stringify(buyData)], org_name, email, currentUser.password).then((response) => {
-                if (!response) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
-                }
-                return res.status(200).send(response);
-            });
-        }
-    }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-    });
+          response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, registerResult.secret)
+          if (!response) throw 'Problem putting buyer\'s request';
+          return res.status(200).send({requestId: response});
+      } else {
+        const response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password)
+        if (!response) throw 'Problem executing ' + methodName;
+        return res.status(200).send({requestId: response});
+      }
+
+    } catch (err) {
+        return res.status(400).send(err);
+    }
 };
 
 /**
@@ -276,8 +249,18 @@ module.exports.getProperties4Sale = (req, res) => {
 
         let ret = response[0].toString('utf8');
 
-        return res.status(200).send(JSON.parse(ret));
-        cb(JSON.parse(ret));
+      return res.status(200).send(JSON.parse(ret));
+    });
+};
+
+module.exports.getProperties4SaleSocket = (cb) => {
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+        if (!response)
+            throw 'Not a proper response for getProperties4Sale'
+
+        let ret = response[0].toString('utf8');
+
+      cb(JSON.parse(ret));
     });
 };
 

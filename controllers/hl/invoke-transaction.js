@@ -31,7 +31,6 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
     var targets = (peerNames) ? helper.newPeers(peerNames, org) : undefined;
     var tx_id = null;
     return helper.enrollUser(org, username, password, key, certificate).then((user) => {
-        console.log(user,'vinod');
         tx_id = client.newTransactionID();
         logger.debug(util.format('Sending transaction "%j"', tx_id));
         // send proposal to endorser
@@ -53,8 +52,8 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
         throw new Error('Failed to enroll user \'' + username + '\'. ' + err);
     }).then((results) => {
         var proposalResponses = results[0];
-        console.log(proposalResponses,'ran');
-        
+        console.log("test", proposalResponses);
+
         var proposal = results[1];
         var all_good = true;
         for (var i in proposalResponses) {
@@ -143,7 +142,6 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
         return 'Failed to send proposal due to error: ' + err.stack ? err.stack :
             err;
     }).then((response) => {
-        console.log(response);
         if (response.status === 'SUCCESS') {
             logger.info('Successfully sent transaction to the orderer.');
             return tx_id.getTransactionID();

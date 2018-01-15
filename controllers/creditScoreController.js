@@ -25,7 +25,12 @@ const dept = 'mashreq' + '.department1';
 const adminUsername = 'admin';
 const adminPassword = 'adminpw';
 module.exports.calculateRating = (req, res) => {
-    const { name, licenseNumber,requestHash,userHash,score } = req.body;
+    const { name, licenseNumber, requestHash, userHash } = req.body;
+    let score = Math.random();
+    if(score>0.66)  score = "A"; else
+    if(score>0.33)  score = "B"; else
+                    score = "C";
+
     const creditRatingAgencyData = {
         Name: name,
         LicenseNumber: licenseNumber
@@ -80,10 +85,24 @@ module.exports.calculateRating = (req, res) => {
 };
 
 
+module.exports.getCreditRatingListSocket = async (cb) => {
+    try {
+      const response = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditRatingPull', [JSON.stringify({})], org_name, 'admin', 'adminpw')
+      if (!response)
+        throw 'Not a proper response for creditScoreController: getCreditRatingListSocket'
+
+      let ret = response[0].toString('utf8');
+      cb(JSON.parse(ret));
+    }
+    catch (err) {
+        console.log("something broke", err)
+    }
+};
+
 module.exports.pull = (req, res) => {
     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditRatingPull', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
         if (!response)
-          throw 'Not a proper response for getProperties4Sale'
+          throw 'Not a proper response for creditScoreController: pull'
 
       let ret = response[0].toString('utf8');
       return res.status(200).send(JSON.parse(ret));
