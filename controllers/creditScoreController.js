@@ -10,6 +10,7 @@ const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_poccreditratingagency';
 const uniqueString = require('unique-string');
 const queryChaincode = require('./hl/query');
+const { filter } = require('lodash');
 
 const attrs = [
     {
@@ -99,11 +100,23 @@ module.exports.getCreditRatingListSocket = async (cb) => {
 };
 
 module.exports.pull = (req, res) => {
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditRatingPull', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+    const { buyerHash } = req.body;
+    if(!buyerHash) throw 'No buyer hash received, make sure to provide a buyer hash before fetching requests'
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditRatingPull', [JSON.stringify({})], org_name, 'admin', 'adminpw').then(async (response) => {
         if (!response)
           throw 'Not a proper response for creditScoreController: pull'
 
       let ret = response[0].toString('utf8');
-      return res.status(200).send(JSON.parse(ret));
+      if(ret) ret = JSON.parse(ret);
+
+      ret = filter(ret, {UserHash: buyerHash});
+      if(!ret[0])
+          throw 'No recent requests'
+
+      let reqData = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getRequestInfo', [ret[0].UserHash, ret[0].RequestHash], org_name, 'admin', 'adminpw')
+			reqData = reqData[0].toString();
+      reqData = JSON.parse(reqData);
+
+			return res.status(200).send(reqData);
     });
 };

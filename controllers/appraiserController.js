@@ -1,5 +1,3 @@
-import { try } from '../../../Users/ran/AppData/Local/Microsoft/TypeScript/2.6/node_modules/@types/bluebird';
-
 const db = require('../lib/db');
 const httpStatus = require('http-status-codes');
 const invokeChaincode = require('./hl/invoke-transaction');

@@ -24,12 +24,13 @@ var logger = helper.getLogger('invoke-chaincode');
 var EventHub = require('fabric-client/lib/EventHub.js');
 var ORGS = hfc.getConfigSetting('network-config');
 
-var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args, org, username, password, key, certificate) {
+var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args, org, username, password, key, certificate, options = {returnUser: false}) {
     logger.debug(util.format('\n============ invoke transaction on organization %s ============\n', org));
     var client = helper.getClientForOrg(org);
     var channel = helper.getChannelForOrg(org);
     var targets = (peerNames) ? helper.newPeers(peerNames, org) : undefined;
     var tx_id = null;
+    var userHash = '';
     return helper.enrollUser(org, username, password, key, certificate).then((user) => {
         tx_id = client.newTransactionID();
         logger.debug(util.format('Sending transaction "%j"', tx_id));
@@ -52,7 +53,7 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
         throw new Error('Failed to enroll user \'' + username + '\'. ' + err);
     }).then((results) => {
         var proposalResponses = results[0];
-        console.log("test", proposalResponses);
+        userHash = results[0][0].response.payload.toString();
 
         var proposal = results[1];
         var all_good = true;
@@ -119,7 +120,7 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 });
                 eventPromises.push(txPromise);
             }
-            ;
+
             var sendPromise = channel.sendTransaction(request);
             return Promise.all([sendPromise].concat(eventPromises)).then((results) => {
                 logger.debug(' event promise all complete and testing complete');
@@ -144,7 +145,13 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
     }).then((response) => {
         if (response.status === 'SUCCESS') {
             logger.info('Successfully sent transaction to the orderer.');
-            return tx_id.getTransactionID();
+            if(options['returnUser'])
+                return {
+                  txId:tx_id.getTransactionID(),
+                  userHash
+                };
+            else
+                return tx_id.getTransactionID();
         } else {
             logger.error('Failed to order the transaction. Error code: ' + response.status);
             return 'Failed to order the transaction. Error code: ' + response.status;

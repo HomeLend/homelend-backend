@@ -52,7 +52,7 @@ const adminPassword = 'adminpw';
  */
 
 const runMethodAndRegister = async (req, res, methodName, data, userData) => {
-	const email = String(userData.email).toLowerCase();
+	const email = String(userData.Email).toLowerCase();
   const type = 'buyer';
 
   try {
@@ -68,16 +68,16 @@ const runMethodAndRegister = async (req, res, methodName, data, userData) => {
             rootCertificate: registerResult.rootCertificate,
           }).save();
           if (!user) throw 'Problem saving the user';
-          let response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(userData)], org_name, email, registerResult.secret)
+          let response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(userData)], org_name, email, registerResult.secret, null, null, {returnUser: true})
           if (!response) throw 'Problem saving the user inside blockchain';
 
-          response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, registerResult.secret)
+          response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, registerResult.secret, null, null, {returnUser: true})
           if (!response) throw 'Problem putting buyer\'s request';
-          return res.status(200).send({requestId: response});
+          return res.status(200).send(response);
       } else {
-        const response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password)
+        const response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password, null, null, {returnUser: true})
         if (!response) throw 'Problem executing ' + methodName;
-        return res.status(200).send({requestId: response});
+        return res.status(200).send(response);
       }
 
     } catch (err) {
@@ -136,8 +136,8 @@ module.exports.buy = (req, res) => {
         Hash: uniqueString(),
         PropertyHash: propertyHash,
         SellerHash: sellerHash,
-        Salary: salary,
-        LoanAmount: loanAmount
+        Salary: parseInt(salary, 10),
+        LoanAmount: parseInt(loanAmount, 10)
     };
 
     return runMethodAndRegister(req, res, 'buy', [JSON.stringify(buyData)], putBuyerPersonalInfoData);
