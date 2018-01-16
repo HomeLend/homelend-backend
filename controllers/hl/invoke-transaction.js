@@ -20,6 +20,7 @@ var util = require('util');
 var hfc = require('fabric-client');
 var Peer = require('fabric-client/lib/Peer.js');
 var helper = require('./helper.js');
+var { get } = require('lodash');
 var logger = helper.getLogger('invoke-chaincode');
 var EventHub = require('fabric-client/lib/EventHub.js');
 var ORGS = hfc.getConfigSetting('network-config');
@@ -53,7 +54,8 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
         throw new Error('Failed to enroll user \'' + username + '\'. ' + err);
     }).then((results) => {
         var proposalResponses = results[0];
-        userHash = results[0][0].response.payload.toString();
+        userHash = get(results, '0.0.response.payload');
+        if(userHash) userHash = userHash.toString();
 
         var proposal = results[1];
         var all_good = true;

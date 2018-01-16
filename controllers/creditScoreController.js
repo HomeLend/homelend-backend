@@ -25,64 +25,54 @@ const attrs = [
 const dept = 'mashreq' + '.department1';
 const adminUsername = 'admin';
 const adminPassword = 'adminpw';
-module.exports.calculateRating = (req, res) => {
-    const { name, licenseNumber, requestHash, userHash } = req.body;
-    let score = Math.random();
-    if(score>0.66)  score = "A"; else
-    if(score>0.33)  score = "B"; else
-                    score = "C";
-    const creditRatingAgencyData = {
-        Name: name,
-        LicenseNumber: licenseNumber
-    };
+module.exports.calculateRating = async (req, res) => {
+	const {name, licenseNumber, requestHash, userHash} = req.body;
+	let score = Math.random();
+	if (score > 0.66) score = "A"; else if (score > 0.33) score = "B"; else score = "C";
 
-    const creditScorePayload = {
-        RequestHash: requestHash,
-        UserHash : userHash
-    }
-    UsersCacheModel.findOne({ email: licenseNumber, type: 'credit-rating' }).then((currentUser) => {
-        if (!currentUser) {
-            return helper.register(org_name, licenseNumber, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
-                if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering agency' });
-                }
-                return UsersCacheModel({
-                    email: licenseNumber,
-                    password: registerResult.secret,
-                    type: 'credit-rating',
-                    key: registerResult.key,
-                    certificate: registerResult.certificate,
-                    rootCertificate: registerResult.rootCertificate
-                }).save().then((user) => {
-                    if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the agency' });
-                    }
-                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putCreditRatingAgencyInfo', [JSON.stringify(creditRatingAgencyData),score], org_name, licenseNumber, registerResult.secret).then((response) => {
-                        if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the agency inside blockchain' });
-                        }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify(creditScorePayload)], org_name, licenseNumber, registerResult.secret).then((response) => {
-                            if (!response) {
-                                return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating credit score' });
-                            }
-                            return res.status(200).send(response);
-                        });
-                    });
-                });
-            });
-        }
-        else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify(creditScorePayload)], org_name, licenseNumber, currentUser.password).then((response) => {
-                if (!response) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating credit score' });
-                }
-                return res.status(200).send(response);
-            });
-        }
-    }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-    });
-};
+	const creditRatingAgencyData = {
+		Name: name,
+		LicenseNumber: licenseNumber
+	};
+
+	const creditScorePayload = {
+		RequestHash: requestHash,
+		UserHash: userHash
+	}
+	try {
+		let response = '';
+		const currentUser = await UsersCacheModel.findOne({email: licenseNumber, type: 'credit-rating'})
+		if (!currentUser) {
+			const registerResult = await helper.register(org_name, licenseNumber, attrs, dept, adminUsername, adminPassword)
+			if (!registerResult && !registerResult.secret) throw 'Problem registering agency'
+			const user = await UsersCacheModel({
+				email: licenseNumber,
+				password: registerResult.secret,
+				type: 'credit-rating',
+				key: registerResult.key,
+				certificate: registerResult.certificate,
+				rootCertificate: registerResult.rootCertificate
+			}).save();
+			if (!user) throw 'Problem saving the agency'
+
+			response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putCreditRatingAgencyInfo', [JSON.stringify(creditRatingAgencyData), score], org_name, licenseNumber, registerResult.secret)
+			if (!response) throw 'Problem saving the agency inside blockchain'
+
+			response = invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify(creditScorePayload)], org_name, licenseNumber, registerResult.secret)
+			if (!response) throw 'Problem updating credit score'
+
+		} else {
+
+			response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify(creditScorePayload)], org_name, licenseNumber, currentUser.password)
+			if (!response) throw 'Problem updating credit score'
+
+		}
+		return res.status(200).send(response);
+	}
+	catch (err) {
+		return res.status(httpStatus.BAD_REQUEST).send({err: err});
+	}
+}
 
 
 module.exports.getCreditRatingListSocket = async (cb) => {
