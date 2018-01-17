@@ -39,11 +39,11 @@ module.exports.putOffer = (req, res) => {
         IDNumber: idNumber,
         Timestamp: Date.now()
     };
-    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
+    UsersCacheModel.findOne({email: email, type: 'appraiser'}).then((currentUser) => {
         if (!currentUser) {
             return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
                 if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering appraiser' });
+                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem registering appraiser'});
                 }
                 return UsersCacheModel({
                     email: email,
@@ -54,15 +54,15 @@ module.exports.putOffer = (req, res) => {
                     rootCertificate: registerResult.rootCertificate,
                 }).save().then((user) => {
                     if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the appraiser' });
+                        return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the appraiser'});
                     }
                     return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putAppraiserInfo', [JSON.stringify(appraiserData)], org_name, email, registerResult.secret).then((response) => {
                         if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the appraiser inside blockchain' });
+                            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the appraiser inside blockchain'});
                         }
                         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserAmount, uniqueString()], org_name, email, registerResult.secret).then((response) => {
                             if (!response) {
-                                return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating appraiser offer' });
+                                return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating appraiser offer'});
                             }
                             return res.status(200).send(response);
                         });
@@ -73,20 +73,20 @@ module.exports.putOffer = (req, res) => {
         else {
             return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserAmount, uniqueString()], org_name, email, registerResult.secret).then((response) => {
                 if (!response) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating appraiser offer' });
+                    return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating appraiser offer'});
                 }
                 return res.status(200).send(response);
             });
         }
     }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
+        return res.status(httpStatus.BAD_REQUEST).send({err: err});
     });
 };
 
 
 module.exports.register = (req, res) => {
 
-    const { email, idNumber, firstName, lastName } = req.body
+    const {email, idNumber, firstName, lastName} = req.body
     const userData = {
         FirstName: firstName,
         LastName: lastName,
@@ -95,11 +95,11 @@ module.exports.register = (req, res) => {
     };
 
 
-    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
+    UsersCacheModel.findOne({email: email, type: 'appraiser'}).then((currentUser) => {
         if (!currentUser) {
             return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
                 if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering user' });
+                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem registering user'});
                 }
                 return UsersCacheModel({
                     email: email,
@@ -110,11 +110,11 @@ module.exports.register = (req, res) => {
                     rootCertificate: registerResult.rootCertificate,
                 }).save().then((user) => {
                     if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
+                        return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
                     }
                     return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'appraiserputPersonalInfo', [JSON.stringify(userData)], org_name, email, registerResult.secret).then((response) => {
                         if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
+                            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
                         }
                         else {
                             return res.status(200).send(response);
@@ -134,17 +134,15 @@ module.exports.pullPendingRequests = (req, res) => {
 
 
 module.exports.putEstimation = (req, res) => {
-    const { email, buyerHash, requestHash, amount } = req.body;
-    return runMethodWithIdentity(req, res, "appraiserProvideAmount", [buyerHash, requestHash, amount + ``], email)
+    const {email, buyerHash, requestHash, amount} = req.body;
+    runMethodWithIdentity(req, res, "appraiserProvideAmount", [buyerHash, requestHash, amount + ``], email)
 };
 
 
-
-
 const runQueryWithIdentity = (req, res, email, queryName) => {
-    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
+    UsersCacheModel.findOne({email: email, type: 'appraiser'}).then((currentUser) => {
         if (!currentUser) {
-            return res.status(httpStatus.BAD_REQUEST).send({ err: 'User not found' });
+            return res.status(httpStatus.BAD_REQUEST).send({err: 'User not found'});
         }
 
         return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, queryName, [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
@@ -158,21 +156,21 @@ const runQueryWithIdentity = (req, res, email, queryName) => {
 };
 
 
-const runMethodWithIdentity = async (req, res, methodName, data, email) => {
-    try {
-        const currentUser = await UsersCacheModel.findOne({ email: email, type: 'appraiser' })
+const runMethodWithIdentity = (req, res, methodName, data, email) => {
+
+    UsersCacheModel.findOne({email: email, type: 'appraiser'}).then((currentUser) => {
         if (!currentUser) {
             return res.status(400).send('user was not found');
         }
         else {
-            const response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password)
-            if (!response) {
-                throw 'Problem executing ' + methodName
-            }
-            return res.status(200).send(response);
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password).then((response) => {
+                if (!response) {
+                    throw 'Problem executing ' + methodName
+                }
+                return res.status(200).send(response);
+            });
         }
-    }
-    catch (err) {
-        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-    }
+    }).catch((err) => {
+        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+    });
 };
