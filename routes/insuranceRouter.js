@@ -3,6 +3,8 @@ const express = require('express');
 const router = express.Router();
 const insuranceController = require('../controllers/insuranceController');
 
-router.post('/put-offer', insuranceController.putOffer);
+router.post('/register', insuranceController.register);
+router.get('/pull', insuranceController.pull);
+router.post('/putOffer', insuranceController.putOffer);
 
 module.exports = router;

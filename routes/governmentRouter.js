@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const governmentController = require('../controllers/governmentController');
 
-router.post('/confirm-house', governmentController.confirmHouse);
-router.post('/change-title', governmentController.changeTitle);
+router.post('/updateRequest', governmentController.updateRequest);
+router.get('/pending', governmentController.pull);
 
 module.exports = router;

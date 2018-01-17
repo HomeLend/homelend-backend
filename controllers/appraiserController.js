@@ -104,7 +104,7 @@ module.exports.register = (req, res) => {
                 return UsersCacheModel({
                     email: email,
                     password: registerResult.secret,
-                    type: 'buyer',
+                    type: 'appraiser',
                     key: registerResult.key,
                     certificate: registerResult.certificate,
                     rootCertificate: registerResult.rootCertificate,

@@ -226,6 +226,15 @@ module.exports.selectAppraiser = (req, res) => {
     return runMethodWithIdentity(req, res, 'buyerSelectAppraiser', data, email);
 };
 
+module.exports.selectInsuranceOffer = (req, res) => {
+    const { email, insuranceOfferHash, requestHash } = req.body
+    const data = [
+        requestHash, insuranceOfferHash
+    ];
+
+    return runMethodWithIdentity(req, res, 'buyerSelectInsuranceOffer', data, email);
+};
+
 module.exports.acceptOfferFromInsurance = (req, res) => {
     const insuranceId = req.body.insuranceId;
 
@@ -289,7 +298,8 @@ module.exports.getProperties4SaleSocket = (cb) => {
 };
 
 module.exports.query = (req, res) => {
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'query', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+    const query  =req.query.query;
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'query', [JSON.stringify({query})], org_name, 'admin', 'adminpw').then((response) => {
         if (!response)
             throw 'Not a proper response for getProperties4Sale'
 
