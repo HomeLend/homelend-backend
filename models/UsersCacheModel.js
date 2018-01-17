@@ -23,7 +23,7 @@ const UsersCacheSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ['buyer', 'seller', 'appraiser', 'bank', 'insurance', 'credit-rating']
+        enum: ['buyer', 'seller', 'appraiser', 'bank', 'insurance', 'credit-rating','government']
     },
     key: {
         type: String,

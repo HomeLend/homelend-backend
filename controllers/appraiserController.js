@@ -1,5 +1,3 @@
-import { try } from '../../../Users/ran/AppData/Local/Microsoft/TypeScript/2.6/node_modules/@types/bluebird';
-
 const db = require('../lib/db');
 const httpStatus = require('http-status-codes');
 const invokeChaincode = require('./hl/invoke-transaction');
@@ -106,7 +104,7 @@ module.exports.register = (req, res) => {
                 return UsersCacheModel({
                     email: email,
                     password: registerResult.secret,
-                    type: 'buyer',
+                    type: 'appraiser',
                     key: registerResult.key,
                     certificate: registerResult.certificate,
                     rootCertificate: registerResult.rootCertificate,

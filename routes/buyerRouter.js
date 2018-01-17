@@ -7,6 +7,7 @@ const buyerController = require('../controllers/buyerController');
 router.get('/properties', buyerController.getProperties);
  router.post('/buy', buyerController.buy);
  router.post('/selectBankOffer', buyerController.selectBankOffer);
+ router.post('/selectInsuranceOffer', buyerController.selectInsuranceOffer);
 // router.post('/confirm', buyerController.confirm);
 // router.post('/decline', buyerController.decline);
 // router.post('/uploadDocuments', buyerController.uploadDocuments);

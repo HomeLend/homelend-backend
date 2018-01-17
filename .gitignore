@@ -59,3 +59,11 @@ typings/
 
 .idea
 .idea/*
+
+tmp_peerPOCAppraiserMSP
+tmp_peerPOCBank
+tmp_peerPOCBuyer
+tmp_peerPOCCreditratingagency
+tmp_peerPOCGovernmentMSP
+tmp_peerPOCInsuranceMSP
+tmp_peerPOCSeller
