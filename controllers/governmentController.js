@@ -9,6 +9,7 @@ const chaincodeName = config.get('lending_chaincode');
 const queryChaincode = require('./hl/query');
 const org_name = 'org_pocgovernment';
 // const uniqueString = require('unique-string');
+const [ adminUsername, adminPassword ] = [config.admins[0].username, config.admins[0].secret];
 
 const attrs = [
   {
@@ -21,7 +22,6 @@ const attrs = [
       'hf.Registrar.Attributes': '*',
   }];
 const dept = 'mashreq' + '.department1';
-const [ adminUsername, adminPassword ] = [config.admins[0].username, config.admins[0].secret];
 
 module.exports.updateRequest = (req, res) => {
   const { buyerHash, requestHash, checkHouseOwner, checkLien, checkWarningShot } = req.body;
