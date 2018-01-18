@@ -11,6 +11,7 @@ const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_pocbuyer';
 const uniqueString = require('unique-string');
+const {last, filter} = require('lodash');
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -103,22 +104,6 @@ const runMethodWithIdentity = (req, res, methodName, data, email) => {
     });
 };
 
-const runQueryWithIdentity = (req, res, email, queryName) => {
-    UsersCacheModel.findOne({ email: email, type: 'buyer' }).then((currentUser) => {
-        if (!currentUser) {
-            return res.status(httpStatus.BAD_REQUEST).send({ err: 'User not found' });
-        }
-
-        return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, queryName, [JSON.stringify({})], org_name,email, currentUser.password).then((response) => {
-            if (!response)
-                throw 'Not a proper response for ' + queryName
-
-            let ret = response[0].toString('utf8');
-            return res.status(200).send(JSON.parse(ret));
-        });
-    });
-};
-
 
 
 module.exports.buy = (req, res) => {
@@ -143,9 +128,26 @@ module.exports.buy = (req, res) => {
     return runMethodAndRegister(req, res, 'buy', [JSON.stringify(buyData)], putBuyerPersonalInfoData);
 };
 
-module.exports.getMyRequests = (req, res) => {
-    const email = req.query.email;
-    return runQueryWithIdentity(req, res, email, 'buyerGetMyRequests');
+module.exports.getMyRequests = async (req, res) => {
+  const email = req.query.email.toLowerCase();
+  try {
+		const currentUser = await UsersCacheModel.findOne({email, type: 'buyer'});
+		if (!currentUser) throw 'User not found'
+
+		const response = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buyerGetMyRequests', ['{}'], org_name, email, currentUser.password)
+		if (!response) throw 'Not a proper response for buyerGetMyRequests'
+
+		let ret = response[0].toString('utf8');
+		ret = JSON.parse(ret);
+
+		// Get only results of the last mortgage request by the latest hash in the array
+		let retFiltered = filter(ret, {Hash: last(ret)['Hash']})
+		return res.status(200).send(retFiltered);
+	}
+	catch (err) {
+    console.log("Check getMyRequests at buyerController.js", err);
+		return res.status(400).send(err);
+  }
 };
 
 module.exports.selectBankOffer = (req, res) => {
