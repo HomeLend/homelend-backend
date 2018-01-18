@@ -302,8 +302,7 @@ module.exports.getProperties4Sale = (req, res) => {
 };
 
 module.exports.query = (req, res) => {
-    const query  =req.query.query;
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'query', [JSON.stringify({query})], org_name, 'admin', 'adminpw').then((response) => {
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'query', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
         if (!response)
             throw 'Not a proper response for getProperties4Sale'
 

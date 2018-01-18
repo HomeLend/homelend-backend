@@ -30,7 +30,7 @@ module.exports.updateRequest = (req, res) => {
   const { buyerHash, requestHash, checkHouseOwner, checkLien, checkWarningShot } = req.body;
   const data = [buyerHash, requestHash, checkHouseOwner, checkLien, checkWarningShot];
   return runMethodAndRegister(req,res,'governmentPutData',data,null);
-  invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'governmentPutData1', data, org_name, 'admin', 'adminpw').then((response) => {
+  invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'governmentPutData', data, org_name, 'admin', 'adminpw').then((response) => {
     if (!response) {
       return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem executing ' + methodName });
     }
@@ -56,7 +56,7 @@ module.exports.pull = (req, res) => {
 
 const runMethodAndRegister = (req, res, methodName, data, userData) => {
 
-  const email = 'ran1'
+  const email = 'ran5'
   UsersCacheModel.findOne({ email: email, type: 'government' }).then((currentUser) => {
     if (!currentUser) {
       return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
@@ -74,7 +74,7 @@ const runMethodAndRegister = (req, res, methodName, data, userData) => {
           if (!user) {
             return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
           }
-          return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, registerResult.secret).then((response) => {
+          return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, user.email, user.password).then((response) => {
             if (!response) {
               return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting government\'s request' });
             }

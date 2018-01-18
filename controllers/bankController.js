@@ -84,6 +84,62 @@ module.exports.calculateRating = (req, res) => {
 };
 
 
+module.exports.bankApprove = (req, res) => {
+    const { userHash, requestHash, swiftNumber } = req.body;
+
+    const requestLink = {
+        RequestHash: requestHash,
+        UserHash: userHash
+    }
+
+    const requestData = [JSON.stringify(requestLink)];
+
+    UsersCacheModel.findOne({ email: swiftNumber, type: 'bank' }).then((currentUser) => {
+        if (!currentUser) {
+            return res.status(400).send('user was not found');
+        }
+        else {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'bankApprove', requestData, org_name, swiftNumber, currentUser.password).then((response) => {
+                if (!response) {
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem executing ' + methodName });
+                }
+                return res.status(200).send(response);
+            });
+        }
+    }).catch((err) => {
+        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
+    });
+};
+
+module.exports.bankRunChaincode = (req, res) => {
+    const { userHash, requestHash, swiftNumber } = req.body;
+
+    const requestLink = {
+        RequestHash: requestHash,
+        UserHash: userHash
+    }
+
+    const requestData = [JSON.stringify(requestLink)];
+
+    UsersCacheModel.findOne({ email: swiftNumber, type: 'bank' }).then((currentUser) => {
+        if (!currentUser) {
+            return res.status(400).send('user was not found');
+        }
+        else {
+            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'bankRunChaincode', requestData, org_name, swiftNumber, currentUser.password).then((response) => {
+                if (!response) {
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem executing ' + methodName });
+                }
+                return res.status(200).send(response);
+            });
+        }
+    }).catch((err) => {
+        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
+    });
+};
+
+
+
 module.exports.pull = (req, res) => {
     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'bankPullOpen4bankOffers', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
         if (!response)
