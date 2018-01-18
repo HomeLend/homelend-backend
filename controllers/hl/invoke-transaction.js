@@ -53,8 +53,10 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
         throw new Error('Failed to enroll user \'' + username + '\'. ' + err);
     }).then((results) => {
         var proposalResponses = results[0];
-        console.log(proposalResponses,'ran');
-        
+        logger.info('ran',proposalResponses);
+        if(results != null && results[0] != null && results[0][0] != null)
+            console.log('results',results)
+
         var proposal = results[1];
         var all_good = true;
         for (var i in proposalResponses) {
