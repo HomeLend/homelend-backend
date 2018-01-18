@@ -1,15 +1,14 @@
 const db = require('../lib/db');
 const httpStatus = require('http-status-codes');
 const invokeChaincode = require('./hl/invoke-transaction');
-const logger = require('../lib/logger');
-const Promise = require('bluebird');
+// const logger = require('../lib/logger');
 const config = require('config');
 const helper = require('./hl/helper');
 const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
 const queryChaincode = require('./hl/query');
 const org_name = 'org_pocgovernment';
-const uniqueString = require('unique-string');
+// const uniqueString = require('unique-string');
 
 const attrs = [
   {
@@ -18,19 +17,17 @@ const attrs = [
       'hf.Revoker': true,
       'hf.IntermediateCA': true,
       //user role can be customized
-      BasicRole: 'admin',
+      BasicRole: adminUsername,
       'hf.Registrar.Attributes': '*',
   }];
 const dept = 'mashreq' + '.department1';
-const adminUsername = 'admin';
-const adminPassword = 'adminpw';
-
+const [ adminUsername, adminPassword ] = [config.admins[0].username, config.admins[0].secret];
 
 module.exports.updateRequest = (req, res) => {
   const { buyerHash, requestHash, checkHouseOwner, checkLien, checkWarningShot } = req.body;
   const data = [buyerHash, requestHash, checkHouseOwner, checkLien, checkWarningShot];
   return runMethodAndRegister(req,res,'governmentPutData',data,null);
-  invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'governmentPutData1', data, org_name, 'admin', 'adminpw').then((response) => {
+  invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'governmentPutData1', data, org_name, adminUsername, adminPassword).then((response) => {
     if (!response) {
       return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem executing ' + methodName });
     }
@@ -39,7 +36,7 @@ module.exports.updateRequest = (req, res) => {
 };
 
 module.exports.pull = (req, res) => {
-  return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'governmentPullPending', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+  return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'governmentPullPending', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
     if (!response)
       throw 'Not a proper response for getProperties4Sale'
 

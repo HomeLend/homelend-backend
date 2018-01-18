@@ -11,6 +11,7 @@ const org_name = 'org_poccreditratingagency';
 const uniqueString = require('unique-string');
 const queryChaincode = require('./hl/query');
 const { filter } = require('lodash');
+const [ adminUsername, adminPassword ] = [config.admins[0].username, config.admins[0].secret];
 
 const attrs = [
     {
@@ -19,12 +20,11 @@ const attrs = [
         'hf.Revoker': true,
         'hf.IntermediateCA': true,
         //user role can be customized
-        BasicRole: 'admin',
+        BasicRole: adminUsername,
         'hf.Registrar.Attributes': '*',
     }];
 const dept = 'mashreq' + '.department1';
-const adminUsername = 'admin';
-const adminPassword = 'adminpw';
+
 module.exports.calculateRating = async (req, res) => {
 	const {name, licenseNumber, requestHash, userHash} = req.body;
 	let score = Math.random();
@@ -77,7 +77,7 @@ module.exports.calculateRating = async (req, res) => {
 
 module.exports.getCreditRatingListSocket = async (cb) => {
     try {
-      const response = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditRatingPull', [JSON.stringify({})], org_name, 'admin', 'adminpw')
+      const response = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditRatingPull', [JSON.stringify({})], org_name, adminUsername, adminPassword)
       if (!response)
         throw 'Not a proper response for creditScoreController: getCreditRatingListSocket'
 
@@ -92,7 +92,7 @@ module.exports.getCreditRatingListSocket = async (cb) => {
 module.exports.pull = (req, res) => {
     const { buyerHash } = req.body;
     if(!buyerHash) throw 'No buyer hash received, make sure to provide a buyer hash before fetching requests'
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditRatingPull', [JSON.stringify({})], org_name, 'admin', 'adminpw').then(async (response) => {
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditRatingPull', [JSON.stringify({})], org_name, adminUsername, adminPassword).then(async (response) => {
         if (!response)
           throw 'Not a proper response for creditScoreController: pull'
 
@@ -103,7 +103,7 @@ module.exports.pull = (req, res) => {
       if(!ret[0])
           throw 'No recent requests'
 
-      let reqData = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getRequestInfo', [ret[0].UserHash, ret[0].RequestHash], org_name, 'admin', 'adminpw')
+      let reqData = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getRequestInfo', [ret[0].UserHash, ret[0].RequestHash], org_name, adminUsername, adminPassword)
 			reqData = reqData[0].toString();
       reqData = JSON.parse(reqData);
 

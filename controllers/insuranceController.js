@@ -2,7 +2,6 @@ const db = require('../lib/db');
 const httpStatus = require('http-status-codes');
 const invokeChaincode = require('./hl/invoke-transaction');
 const logger = require('../lib/logger');
-const Promise = require('bluebird');
 const config = require('config');
 const helper = require('./hl/helper');
 const UsersCacheModel = db.model('UsersCache');
@@ -21,8 +20,7 @@ const attrs = [
         'hf.Registrar.Attributes': '*',
     }];
 const dept = 'mashreq' + '.department1';
-const adminUsername = 'admin';
-const adminPassword = 'adminpw';
+const [ adminUsername, adminPassword ] = [config.admins[0].username, config.admins[0].secret];
 
 module.exports.register = (req, res) => {
 
@@ -78,7 +76,7 @@ module.exports.putOffer = (req, res) => {
 };
 
 module.exports.pull = (req, res) => {
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'insuranceGetOpenRequests', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'insuranceGetOpenRequests', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
         if (!response)
             throw 'Not a proper response for insuranceGetOpenRequests'
 

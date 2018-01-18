@@ -1,6 +1,6 @@
 const db = require('../lib/db');
-const userModel = db.model('Users');
-const propertyModel = db.model('Properties');
+// const userModel = db.model('Users');
+// const propertyModel = db.model('Properties');
 const httpStatus = require('http-status-codes');
 const invokeChaincode = require('./hl/invoke-transaction');
 const logger = require('../lib/logger');
@@ -24,9 +24,7 @@ const attrs = [
         'hf.Registrar.Attributes': '*',
     }];
 const dept = 'mashreq' + '.department1';
-const adminUsername = 'admin';
-const adminPassword = 'adminpw';
-
+const [ adminUsername, adminPassword ] = [config.admins[0].username, config.admins[0].secret];
 
 /**
  *

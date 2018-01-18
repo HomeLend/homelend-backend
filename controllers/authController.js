@@ -123,8 +123,8 @@ module.exports.registerUserBlockchain = (req, res) => {
             'hf.Registrar.Attributes': '*',
         }];
     const dept = 'mashreq' + '.department1';
-    const adminUsername = 'admin';
-    const adminPassword = 'adminpw';
+    const [ adminUsername, adminPassword ] = [config.admins[0].username, config.admins[0].secret];
+
     return helper.registerUser(org, username, dept, attrs, adminUsername, adminPassword).then((result) => {
         console.log(result);
         const response = {};

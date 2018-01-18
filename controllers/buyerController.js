@@ -12,6 +12,8 @@ const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_pocbuyer';
 const uniqueString = require('unique-string');
 const {last, filter} = require('lodash');
+const [ adminUsername, adminPassword ] = [config.admins[0].username, config.admins[0].secret];
+
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -19,13 +21,10 @@ const attrs = [
         'hf.Revoker': true,
         'hf.IntermediateCA': true,
         //user role can be customized
-        BasicRole: 'admin',
+        BasicRole: adminUsername,
         'hf.Registrar.Attributes': '*',
     }];
 const dept = 'mashreq' + '.department1';
-const adminUsername = 'admin';
-const adminPassword = 'adminpw';
-
 
 /**
  * Function registers the request for the buyer
@@ -161,7 +160,7 @@ module.exports.selectBankOffer = (req, res) => {
 
 module.exports.uploadDocuments = (req, res) => {
     const body = {};
-    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'putBuyerPersonalInfo', [JSON.stringify(body)], 'admin', 'org_pocseller').then((response) => {
+    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'putBuyerPersonalInfo', [JSON.stringify(body)], adminUsername, 'org_pocseller').then((response) => {
         return res.send(response);
     }).catch((err) => {
         console.log(err);
@@ -198,7 +197,7 @@ module.exports.acceptOfferFromBank = (req, res) => {
 
 // list of appraiser
 module.exports.listOfAppraisers = (req, res) => {
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buyerGetAllAppraisers', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buyerGetAllAppraisers', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
         if (!response)
             throw 'Not a proper response for getProperties4Sale'
 
@@ -278,7 +277,7 @@ module.exports.getProperties = (req, res) => {
 
 
 module.exports.getProperties4Sale = (req, res) => {
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
         if (!response)
             throw 'Not a proper response for getProperties4Sale'
 
@@ -289,7 +288,7 @@ module.exports.getProperties4Sale = (req, res) => {
 };
 
 module.exports.getProperties4SaleSocket = (cb) => {
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, 'admin', 'adminpw').then((response) => {
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
         if (!response)
             throw 'Not a proper response for getProperties4Sale'
 
@@ -301,7 +300,7 @@ module.exports.getProperties4SaleSocket = (cb) => {
 
 module.exports.query = (req, res) => {
     const query  =req.query.query;
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'query', [JSON.stringify({query})], org_name, 'admin', 'adminpw').then((response) => {
+    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'query', [JSON.stringify({query})], org_name, adminUsername, adminPassword).then((response) => {
         if (!response)
             throw 'Not a proper response for getProperties4Sale'
 
