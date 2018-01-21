@@ -1,6 +1,7 @@
 const axios = require("axios");
+var Stopwatch = require("node-stopwatch").Stopwatch;
 
-const baseUrl = "http://localhost:3000/api/v1/";
+const baseUrl = "http://10.0.0.31:3000/api/v1/";
 
 const advertiseData = {
   "fullName": "Ran shtivi",
@@ -16,13 +17,14 @@ const buyData = {
   "idNumber": "201327616d",
   "fullName": "izikd",
   "salary": 12000,
+  "duration": 300,
   "loanAmount": 800000,
   "propertyHash": "57f171f6da0ed59e2209e18af22bcf5f",
   "sellerHash": "eDUwOTo6Q049cmFuQGhvbWVsZW5kLmNvLmlsOjpDTj1jYS5wb2NzZWxsZXIuaG9tZWxlbmQuaW8sTz1wb2NzZWxsZXIuaG9tZWxlbmQuaW8sTD1TYW4gRnJhbmNpc2NvLFNUPUNhbGlmb3JuaWEsQz1VUw=="
 }
 
 const creditScoreData = {
-  "licenseNumber": "1423456",
+  "licenseNumber": "14234567814",
   "name": "Koko rating agency",
   "userHash": "eDUwOTo6Q049YWJhQHc3YWxsYS5jb206OkNOPWNhLnBvY2J1eWVyLmhvbWVsZW5kLmlvLE89cG9jYnV5ZXIuaG9tZWxlbmQuaW8sTD1TYW4gRnJhbmNpc2NvLFNUPUNhbGlmb3JuaWEsQz1VUw==",
   "requestHash": "7736c05e7e7a25520b9959fead064a98"
@@ -32,7 +34,6 @@ const bankCalcualteData = {
   "name": "בנק איגוד",
   "swiftNumber": "1233",
   "interest": 3,
-  "monthlyPayment": 4000,
   "userHash": "eDUwOTo6Q049YWJhQHc3YWxsYS5jb206OkNOPWNhLnBvY2J1eWVyLmhvbWVsZW5kLmlvLE89cG9jYnV5ZXIuaG9tZWxlbmQuaW8sTD1TYW4gRnJhbmNpc2NvLFNUPUNhbGlmb3JuaWEsQz1VUw==",
   "requestHash": "7736c05e7e7a25520b9959fead064a98"
 }
@@ -80,8 +81,8 @@ const run = async () => {
   bankCalcualteData.swiftNumber = makeidInt(8);
   appraiserData.email = makeid(8) + '@gmail.com';
   insuranceData.licenseNumber = makeidInt(8);
-  await runMethodPost("seller/advertise", advertiseData)
-
+  var stopwatch = Stopwatch.create();
+  await runMethodPost("seller/advertise", advertiseData);
   var properties4sale = await runMethodGet('buyer/properties4Sale', null)
   if (properties4sale == null || properties4sale.length == 0) {
     console.log("no properties for sale")
@@ -93,12 +94,13 @@ const run = async () => {
 
   buyData.sellerHash = sellerHash;
   buyData.propertyHash = propertyHash;
+  buyData.duration = Math.floor(Math.random() * 100) + 260;
   await runMethodPost("buyer/buy", buyData)
   let creditScoreResults = await runMethodPost("creditscore/pull", null)
   creditScoreResults = creditScoreResults.data;
   if (creditScoreResults == null || creditScoreResults.length < 1) {
     console.log("creditScoreResults.length < 1")
-    return;
+    return; 
   }
 
   const buyerHash = creditScoreResults[creditScoreResults.length - 1].UserHash;
