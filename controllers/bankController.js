@@ -38,12 +38,12 @@ module.exports.calculateRating = (req, res) => {
     const interestFloat = parseFloat(interest)
     const monthlyPaymentFloat = parseFloat(monthlyPayment)
 
-    const bankPutOfferData = [JSON.stringify(requestLink), uniqueString(), interestFloat + "", monthlyPaymentFloat + ""];
+    const bankPutOfferData = [JSON.stringify(requestLink), uniqueString(), interestFloat + ""];
     UsersCacheModel.findOne({ email: swiftNumber, type: 'bank' }).then((currentUser) => {
         if (!currentUser) {
             return helper.register(org_name, swiftNumber, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
                 if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering agency' });
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering bank' });
                 }
                 return UsersCacheModel({
                     email: swiftNumber,

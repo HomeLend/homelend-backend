@@ -137,7 +137,7 @@ const runQueryWithIdentity = (req, res, email, queryName) => {
 
 module.exports.buy = (req, res) => {
 
-    const { email, idNumber, idBase64, fullName, propertyHash, sellerHash, salary, loanAmount } = req.body
+    const { email, idNumber, idBase64, fullName, propertyHash, sellerHash, salary, loanAmount,duration } = req.body
     const putBuyerPersonalInfoData = {
         FullName: fullName,
         Email: email,
@@ -151,6 +151,7 @@ module.exports.buy = (req, res) => {
         PropertyHash: propertyHash,
         SellerHash: sellerHash,
         Salary: salary,
+        Duration: duration,
         LoanAmount: loanAmount
     };
 

@@ -52,7 +52,7 @@ module.exports.calculateRating = (req, res) => {
                     if (!user) {
                         return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the agency' });
                     }
-                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putCreditRatingAgencyInfo', [JSON.stringify(creditRatingAgencyData),score], org_name, licenseNumber, registerResult.secret).then((response) => {
+                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putCreditRatingAgencyInfo', [JSON.stringify(creditRatingAgencyData)], org_name, licenseNumber, registerResult.secret).then((response) => {
                         if (!response) {
                             return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the agency inside blockchain' });
                         }
