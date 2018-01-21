@@ -6,7 +6,7 @@ const bankController = require('../controllers/bankController');
 
 router.post('/pendingForOffer', bankController.pull);
 router.post('/calculate', bankController.calculateRating);
-router.post('/decline-pending', fiController.declinePending);
-router.post('/transfer-money', fiController.transferMoney);
+router.post('/approve', bankController.bankApprove);
+router.post('/runChaincode', bankController.bankRunChaincode);
 
 module.exports = router;

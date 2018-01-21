@@ -71,7 +71,7 @@ const runMethodAndRegister = (req, res, methodName, data, userData) => {
           if (!user) {
             return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
           }
-          return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, registerResult.secret).then((response) => {
+          return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, user.email, user.password).then((response) => {
             if (!response) {
               return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting government\'s request' });
             }

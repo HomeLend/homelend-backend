@@ -51,7 +51,7 @@ module.exports.calculateRating = async (req, res) => {
 			};
 			const user = await UsersCacheModel(newBankDetails).save();
 			if (!user) throw 'Problem saving the bank';
-	
+
 			const response = await invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBankInfo', [JSON.stringify(bankData)], org_name, swiftNumber, registerResult.secret)
 			if (!response) throw 'Problem saving the bank inside blockchain';
 
@@ -61,7 +61,7 @@ module.exports.calculateRating = async (req, res) => {
 		const bankPutOfferData = [JSON.stringify(requestLink), uniqueString(), parseFloat(interest) + "", parseFloat(monthlyPayment) + ""];
 		const responseOffer = await invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'bankPutOffer', bankPutOfferData, org_name, swiftNumber, passOrSecret)
 		if (!responseOffer) throw 'Problem updating bank offer';
-		
+
 		return res.status(200).send(responseOffer);
 	}
 	catch (err) {
@@ -70,6 +70,60 @@ module.exports.calculateRating = async (req, res) => {
 	}
 };
 
+
+module.exports.bankApprove = (req, res) => {
+	const { userHash, requestHash, swiftNumber } = req.body;
+
+	const requestLink = {
+		RequestHash: requestHash,
+		UserHash: userHash
+	}
+
+	const requestData = [JSON.stringify(requestLink)];
+
+	UsersCacheModel.findOne({ email: swiftNumber, type: 'bank' }).then((currentUser) => {
+		if (!currentUser) {
+			return res.status(400).send('user was not found');
+		}
+		else {
+			return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'bankApprove', requestData, org_name, swiftNumber, currentUser.password).then((response) => {
+				if (!response) {
+					return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem executing ' + methodName });
+				}
+				return res.status(200).send(response);
+			});
+		}
+	}).catch((err) => {
+		return res.status(httpStatus.BAD_REQUEST).send({ err: err });
+	});
+};
+
+module.exports.bankRunChaincode = (req, res) => {
+	const { userHash, requestHash, swiftNumber } = req.body;
+
+	const requestLink = {
+		RequestHash: requestHash,
+		UserHash: userHash
+	}
+
+	const requestData = [JSON.stringify(requestLink)];
+
+	UsersCacheModel.findOne({ email: swiftNumber, type: 'bank' }).then((currentUser) => {
+		if (!currentUser) {
+			return res.status(400).send('user was not found');
+		}
+		else {
+			return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'bankRunChaincode', requestData, org_name, swiftNumber, currentUser.password).then((response) => {
+				if (!response) {
+					return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem executing ' + methodName });
+				}
+				return res.status(200).send(response);
+			});
+		}
+	}).catch((err) => {
+		return res.status(httpStatus.BAD_REQUEST).send({ err: err });
+	});
+};
 
 module.exports.pull = async (req, res) => {
 	const {buyerHash} = req.body;
