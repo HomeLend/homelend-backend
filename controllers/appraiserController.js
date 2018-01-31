@@ -2,7 +2,6 @@ const db = require('../lib/db');
 const httpStatus = require('http-status-codes');
 const invokeChaincode = require('./hl/invoke-transaction');
 const logger = require('../lib/logger');
-const Promise = require('bluebird');
 const config = require('config');
 const helper = require('./hl/helper');
 const UsersCacheModel = db.model('UsersCache');
@@ -21,8 +20,8 @@ const attrs = [
         'hf.Registrar.Attributes': '*',
     }];
 const dept = 'mashreq' + '.department1';
-const adminUsername = 'admin';
-const adminPassword = 'adminpw';
+const [adminUsername, adminPassword] = [config.admins[0].username, config.admins[0].secret];
+
 module.exports.putOffer = (req, res) => {
     const Name = req.body.Name;
     const email = req.body.email;
@@ -39,11 +38,11 @@ module.exports.putOffer = (req, res) => {
         IDNumber: idNumber,
         Timestamp: Date.now()
     };
-    UsersCacheModel.findOne({email: email, type: 'appraiser'}).then((currentUser) => {
+    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
         if (!currentUser) {
             return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
                 if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem registering appraiser'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering appraiser' });
                 }
                 return UsersCacheModel({
                     email: email,
@@ -54,15 +53,15 @@ module.exports.putOffer = (req, res) => {
                     rootCertificate: registerResult.rootCertificate,
                 }).save().then((user) => {
                     if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the appraiser'});
+                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the appraiser' });
                     }
                     return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putAppraiserInfo', [JSON.stringify(appraiserData)], org_name, email, registerResult.secret).then((response) => {
                         if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the appraiser inside blockchain'});
+                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the appraiser inside blockchain' });
                         }
                         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserAmount, uniqueString()], org_name, email, registerResult.secret).then((response) => {
                             if (!response) {
-                                return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating appraiser offer'});
+                                return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating appraiser offer' });
                             }
                             return res.status(200).send(response);
                         });
@@ -73,20 +72,20 @@ module.exports.putOffer = (req, res) => {
         else {
             return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserAmount, uniqueString()], org_name, email, registerResult.secret).then((response) => {
                 if (!response) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: 'Problem updating appraiser offer'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating appraiser offer' });
                 }
                 return res.status(200).send(response);
             });
         }
     }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
     });
 };
 
 
 module.exports.register = (req, res) => {
 
-    const {email, idNumber, firstName, lastName} = req.body
+    const { email, idNumber, firstName, lastName } = req.body
     const userData = {
         FirstName: firstName,
         LastName: lastName,
@@ -95,11 +94,11 @@ module.exports.register = (req, res) => {
     };
 
 
-    UsersCacheModel.findOne({email: email, type: 'appraiser'}).then((currentUser) => {
+    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
         if (!currentUser) {
             return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
                 if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem registering user'});
+                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering user' });
                 }
                 return UsersCacheModel({
                     email: email,
@@ -110,11 +109,11 @@ module.exports.register = (req, res) => {
                     rootCertificate: registerResult.rootCertificate,
                 }).save().then((user) => {
                     if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user'});
+                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
                     }
                     return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'appraiserputPersonalInfo', [JSON.stringify(userData)], org_name, email, registerResult.secret).then((response) => {
                         if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({err: ' Problem saving the user inside blockchain'});
+                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
                         }
                         else {
                             return res.status(200).send(response);
@@ -134,15 +133,15 @@ module.exports.pullPendingRequests = (req, res) => {
 
 
 module.exports.putEstimation = (req, res) => {
-    const {email, buyerHash, requestHash, amount} = req.body;
+    const { email, buyerHash, requestHash, amount } = req.body;
     runMethodWithIdentity(req, res, "appraiserProvideAmount", [buyerHash, requestHash, amount + ``], email)
 };
 
 
 const runQueryWithIdentity = (req, res, email, queryName) => {
-    UsersCacheModel.findOne({email: email, type: 'appraiser'}).then((currentUser) => {
+    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
         if (!currentUser) {
-            return res.status(httpStatus.BAD_REQUEST).send({err: 'User not found'});
+            return res.status(httpStatus.BAD_REQUEST).send({ err: 'User not found' });
         }
 
         return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, queryName, [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
@@ -150,6 +149,9 @@ const runQueryWithIdentity = (req, res, email, queryName) => {
                 throw 'Not a proper response for ' + queryName
 
             let ret = response[0].toString('utf8');
+            if (ret == "")
+                ret = "{}";
+
             return res.status(200).send(JSON.parse(ret));
         });
     });
@@ -158,7 +160,7 @@ const runQueryWithIdentity = (req, res, email, queryName) => {
 
 const runMethodWithIdentity = (req, res, methodName, data, email) => {
 
-    UsersCacheModel.findOne({email: email, type: 'appraiser'}).then((currentUser) => {
+    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
         if (!currentUser) {
             return res.status(400).send('user was not found');
         }
@@ -171,6 +173,6 @@ const runMethodWithIdentity = (req, res, methodName, data, email) => {
             });
         }
     }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({err: err});
+        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
     });
 };

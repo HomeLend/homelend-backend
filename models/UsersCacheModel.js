@@ -6,8 +6,8 @@ const Schema = mongoose.Schema;
 
 const UsersCacheSchema = new Schema({
     email: {
+        lowercase : true,
         type: String,
-        lowercase: true,
         required: true,
         unique: true,
     },

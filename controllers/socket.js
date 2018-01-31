@@ -1,29 +1,36 @@
-const { getProperties4Sale } = require('../controllers/buyerController');
+// const { getProperties4SaleSocket } = require('../controllers/buyerController');
+// const { getCreditRatingListSocket } = require('../controllers/creditScoreController');
 
 
-const emitPropertiesList = () => {
-  getProperties4Sale(res => {
-    socket.emit('propertiesList', res)
-  })
-}
+// const emitPropertiesList = () => {
+//   getProperties4SaleSocket(res => {
+//     socket.emit('propertiesList', res)
+//   })
+// }
 
-let socket = {};
+// const emitCreditRatingList = () => {
+//   console.log("Got it");
+//   getCreditRatingListSocket(res => {
+//     socket.emit('CreditRatingList', res)
+//   })
+// }
 
-module.exports = (io = null) => {
+// let socket = {};
 
-  // If the exported function has no values, return the socket object
-  if(io === null) return socket;
+// module.exports = (io = null) => {
 
-  // On user connection, join the connection to this room
-  io.on('connection', socket => {
-    socket.join('propertiesList room');
-    emitPropertiesList()
-  });
+//   // If the exported function has no values, return the socket object
+//   if(io === null) return socket;
 
-  socket = io;
+//   // On user connection, join the connection to this room
+//   io.on('connection', socket => {
+//     socket.join('propertiesList room');
+//     emitPropertiesList()
+//     socket.on('getCreditRankList', emitCreditRatingList)
+//   });
 
-  socket.emitPropertiesList = emitPropertiesList;
+//   socket = io;
 
-  console.log("socket", socket);
+//   socket.emitPropertiesList = emitPropertiesList;
 
-}
+// }
