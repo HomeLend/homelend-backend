@@ -6,10 +6,9 @@ const Schema = mongoose.Schema;
 
 const UsersCacheSchema = new Schema({
     email: {
-        lowercase : true,
+        lowercase: true,
         type: String,
         required: true,
-        unique: true,
     },
     licenseNumber: {
         type: String,
@@ -23,7 +22,7 @@ const UsersCacheSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ['buyer', 'seller', 'appraiser', 'bank', 'insurance', 'credit-rating','government']
+        enum: ['buyer', 'seller', 'appraiser', 'bank', 'insurance', 'credit-rating', 'government']
     },
     key: {
         type: String,
@@ -34,8 +33,9 @@ const UsersCacheSchema = new Schema({
     rootCertificate: {
         type: String,
     },
-    timestamp: {type: Date, default: Date.now},
+    timestamp: { type: Date, default: Date.now },
 });
 
+UsersCacheSchema.index({ email: 1, type: 1 }, { unique: true });
 db.model('UsersCache', UsersCacheSchema);
 

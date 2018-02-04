@@ -9,6 +9,8 @@ const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_pocappraiser';
 const queryChaincode = require('./hl/query');
 const uniqueString = require('unique-string');
+const hyplerHelper = require('./../hyplerHelper');
+
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -22,68 +24,8 @@ const attrs = [
 const dept = 'mashreq' + '.department1';
 const [adminUsername, adminPassword] = [config.admins[0].username, config.admins[0].secret];
 
-module.exports.putOffer = (req, res) => {
-    const Name = req.body.Name;
-    const email = req.body.email;
-    const FirstName = req.body.FirstName;
-    const LastName = req.body.LastName;
-    const idNumber = req.body.idNumber;
-    const requestHash = '';
-    const appraiserAmount = '';
 
-    const appraiserData = {
-        FirstName: FirstName,
-        LastName: LastName,
-        Email: email,
-        IDNumber: idNumber,
-        Timestamp: Date.now()
-    };
-    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
-        if (!currentUser) {
-            return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
-                if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering appraiser' });
-                }
-                return UsersCacheModel({
-                    email: email,
-                    password: registerResult.secret,
-                    type: 'appraiser',
-                    key: registerResult.key,
-                    certificate: registerResult.certificate,
-                    rootCertificate: registerResult.rootCertificate,
-                }).save().then((user) => {
-                    if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the appraiser' });
-                    }
-                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putAppraiserInfo', [JSON.stringify(appraiserData)], org_name, email, registerResult.secret).then((response) => {
-                        if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the appraiser inside blockchain' });
-                        }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserAmount, uniqueString()], org_name, email, registerResult.secret).then((response) => {
-                            if (!response) {
-                                return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating appraiser offer' });
-                            }
-                            return res.status(200).send(response);
-                        });
-                    });
-                });
-            });
-        }
-        else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'updateAppraiserOffers', [requestHash, appraiserAmount, uniqueString()], org_name, email, registerResult.secret).then((response) => {
-                if (!response) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: 'Problem updating appraiser offer' });
-                }
-                return res.status(200).send(response);
-            });
-        }
-    }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-    });
-};
-
-
-module.exports.register = (req, res) => {
+module.exports.register = async (req, res) => {
 
     const { email, idNumber, firstName, lastName } = req.body
     const userData = {
@@ -93,86 +35,21 @@ module.exports.register = (req, res) => {
         IDNumber: idNumber + ``
     };
 
-
-    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
-        if (!currentUser) {
-            return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
-                if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering user' });
-                }
-                return UsersCacheModel({
-                    email: email,
-                    password: registerResult.secret,
-                    type: 'appraiser',
-                    key: registerResult.key,
-                    certificate: registerResult.certificate,
-                    rootCertificate: registerResult.rootCertificate,
-                }).save().then((user) => {
-                    if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
-                    }
-                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'appraiserputPersonalInfo', [JSON.stringify(userData)], org_name, email, registerResult.secret).then((response) => {
-                        if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
-                        }
-                        else {
-                            return res.status(200).send(response);
-                        }
-                    });
-                });
-            });
-        }
-    });
+    result = await hyplerHelper.register(email,'appraiserputPersonalInfo',userData,org_name,'appraiser',attrs,dept);
+    return res.status(result.status).send(result);
 };
 
 
-module.exports.pullPendingRequests = (req, res) => {
+module.exports.pullPendingRequests = async (req, res) => {
     const email = req.query.email;
-    return runQueryWithIdentity(req, res, email, 'appraiserPullPendingRequests');
+    const result = await hyplerHelper.runQueryWithIdentity(email, 'appraiserPullPendingRequests','appraiser',org_name);
+    return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);  
 };
 
 
-module.exports.putEstimation = (req, res) => {
+module.exports.putEstimation = async  (req, res) => {
     const { email, buyerHash, requestHash, amount } = req.body;
-    runMethodWithIdentity(req, res, "appraiserProvideAmount", [buyerHash, requestHash, amount + ``], email)
+    var result = await hyplerHelper.runMethodWithIdentity("appraiserProvideAmount", [buyerHash, requestHash, amount + ``], email,'appraiser',org_name);
+    return res.status(result.status).send(result);
 };
 
-
-const runQueryWithIdentity = (req, res, email, queryName) => {
-    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
-        if (!currentUser) {
-            return res.status(httpStatus.BAD_REQUEST).send({ err: 'User not found' });
-        }
-
-        return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, queryName, [JSON.stringify({})], org_name, email, currentUser.password).then((response) => {
-            if (!response)
-                throw 'Not a proper response for ' + queryName
-
-            let ret = response[0].toString('utf8');
-            if (ret == "")
-                ret = "{}";
-
-            return res.status(200).send(JSON.parse(ret));
-        });
-    });
-};
-
-
-const runMethodWithIdentity = (req, res, methodName, data, email) => {
-
-    UsersCacheModel.findOne({ email: email, type: 'appraiser' }).then((currentUser) => {
-        if (!currentUser) {
-            return res.status(400).send('user was not found');
-        }
-        else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password).then((response) => {
-                if (!response) {
-                    throw 'Problem executing ' + methodName
-                }
-                return res.status(200).send(response);
-            });
-        }
-    }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-    });
-};

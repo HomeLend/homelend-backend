@@ -15,15 +15,12 @@ require('./models/UsersModel');
 require('./models/PropertyModel');
 
 /* Register all routes */
-const notificationRouter = require('./routes/notificationRouter');
-const supportRouter = require('./routes/supportRouter');
 const appraiserRouter = require('./routes/appraiserRouter');
 const buyerRouter = require('./routes/buyerRouter');
 const bankRouter = require('./routes/bankRouter');
 const governmentRouter = require('./routes/governmentRouter');
 const insuranceRouter = require('./routes/insuranceRouter');
 const sellerRouter = require('./routes/sellerRouter');
-const authRouter = require('./routes/authRouter');
 const creditScoreRouter = require('./routes/creditScoreRouter');
 const app = express();
 
@@ -48,10 +45,7 @@ app.all('/*', function (req, res, next) {
 
 /* Express Router configrations */
 const API = '/api/v1/';
-app.use(API + 'support', supportRouter);
-app.use(API + 'notification', notificationRouter);
 app.use(API + 'seller', sellerRouter);
-app.use(API + 'auth', authRouter);
 app.use(API + 'buyer', buyerRouter);
 app.use(API + 'appraiser', appraiserRouter);
 app.use(API + 'government', governmentRouter);

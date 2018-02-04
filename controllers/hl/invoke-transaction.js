@@ -55,7 +55,7 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
     }).then((results) => {
         var proposalResponses = results[0];
         if (results != null && results[0] != null && results[0][0] != null)
-            console.log('results', fcn,args, results)
+            console.log('results', fcn, args, results)
 
         userHash = get(results, '0.0.response.payload');
         if (userHash) userHash = userHash.toString();
@@ -132,9 +132,9 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 return results[0]; // the first returned value is from the 'sendPromise' which is from the 'sendTransaction()' call
             }).catch((err) => {
                 logger.error(
-                    'Failed to send transaction and get notifications within the timeout period.'
+                    'Failed to send transaction and get notifications within the timeout period.' + err
                 );
-                return 'Failed to send transaction and get notifications within the timeout period.';
+                return 'Failed to send transaction and get notifications within the timeout period.' + err;
             });
         } else {
             logger.error(
@@ -153,19 +153,19 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
             if (options['returnUser'])
                 return {
                     txId: tx_id.getTransactionID(),
-                    userHash
+                    userHash,
+                    status : 200
                 };
             else
-                return tx_id.getTransactionID();
+                return { status: 200, txId: tx_id.getTransactionID() };
         } else {
-            logger.error('Failed to order the transaction. Error code: ' + response.status);
-            return 'Failed to order the transaction. Error code: ' + response.status;
+            logger.error('Failed to order the transaction. Error: ' + response);
+            return { status: 500, err : 'Failed to order the transaction. Error: ' + response };
         }
     }, (err) => {
         logger.error('Failed to send transaction due to error: ' + err.stack ? err
             .stack : err);
-        return 'Failed to send transaction due to error: ' + err.stack ? err.stack :
-            err;
+        return { status: 500, err : 'Failed to send transaction due to error: ' + (err.stack ? err.stack : err) };
     });
 };
 

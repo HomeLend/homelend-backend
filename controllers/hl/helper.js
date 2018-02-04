@@ -43,7 +43,7 @@ for (let key in ORGS) {
         let client = new hfc();
 
         cryptoSuite = hfc.newCryptoSuite();
-        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({path: getKeyStoreForOrg(ORGS[key].name)}));
+        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({ path: getKeyStoreForOrg(ORGS[key].name) }));
         client.setCryptoSuite(cryptoSuite);
 
         let channel = client.newChannel('mainchannel');
@@ -272,9 +272,9 @@ const getUserWithoutEnroll = function (userOrg, username, password, key, certifi
     const client = getClientForOrg(userOrg);
     let opts;
     if (cryptoSuite._cryptoKeyStore) {
-        opts = {ephemeral: false};
+        opts = { ephemeral: false };
     } else {
-        opts = {ephemeral: true};
+        opts = { ephemeral: true };
     }
     return cryptoSuite.importKey(key, opts)
         .then(function (privatekey) {
@@ -362,7 +362,7 @@ var getRegisteredUsers = function (username, userOrg, isJson) {
                     //return 'Failed to register '+username+'. Error: ' + err.stack ? err.stack : err;
                 }).then((message) => {
                     if (message && typeof message === 'string' && message.includes(
-                            'Error:')) {
+                        'Error:')) {
                         logger.error(username + ' enrollment failed');
                         return message;
                     }
@@ -408,7 +408,7 @@ var getOrgAdmin = function (userOrg) {
     var client = getClientForOrg(userOrg);
     var cryptoSuite = hfc.newCryptoSuite();
     if (userOrg) {
-        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({path: getKeyStoreForOrg(getOrgName(userOrg))}));
+        cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({ path: getKeyStoreForOrg(getOrgName(userOrg)) }));
         client.setCryptoSuite(cryptoSuite);
     }
 
@@ -440,17 +440,18 @@ var getLogger = function (moduleName) {
 
 const register = async (org_name, email, attrs, dept, adminUsername, adminPassword) => {
     try {
-			const result = await registerUser(org_name, email, dept, attrs, adminUsername, adminPassword);
-			const response = {};
-			response.secret = result.secret;
-			const buff = new Buffer(result.key.toBytes());
-			response.key = buff.toString('utf8');
-			response.certificate = result.certificate;
-			response.rootCertificate = result.rootCertificate;
-			return (response);
-		}
-		catch (err) {
+        const result = await registerUser(org_name, email, dept, attrs, adminUsername, adminPassword);
+        const response = {};
+        response.secret = result.secret;
+        const buff = new Buffer(result.key.toBytes());
+        response.key = buff.toString('utf8');
+        response.certificate = result.certificate;
+        response.rootCertificate = result.rootCertificate;
+        return (response);
+    }
+    catch (err) {
         console.log("Oops, problem at register controller at helper.js", err);
+        throw err;
     }
 };
 

@@ -1,7 +1,6 @@
 const express = require('express');
 // eslint-disable-next-line new-cap
 const router = express.Router();
-const fiController = require('../controllers/fiController');
 const bankController = require('../controllers/bankController');
 
 router.post('/pendingForOffer', bankController.pull);

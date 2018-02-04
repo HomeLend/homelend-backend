@@ -9,6 +9,8 @@ const chaincodeName = config.get('lending_chaincode');
 const queryChaincode = require('./hl/query');
 const org_name = 'org_pocinsurance';
 const uniqueString = require('unique-string');
+const hyplerHelper = require('./../hyplerHelper');
+
 const attrs = [
     {
         'hf.Registrar.Roles': 'client,user,peer,validator,auditor',
@@ -20,9 +22,9 @@ const attrs = [
         'hf.Registrar.Attributes': '*',
     }];
 const dept = 'mashreq' + '.department1';
-const [ adminUsername, adminPassword ] = [config.admins[0].username, config.admins[0].secret];
+const [adminUsername, adminPassword] = [config.admins[0].username, config.admins[0].secret];
 
-module.exports.register = (req, res) => {
+module.exports.register = async (req, res) => {
 
     const { licenseNumber, name, address } = req.body
     const insCompanyData = {
@@ -33,6 +35,9 @@ module.exports.register = (req, res) => {
     };
 
     email = licenseNumber;
+
+    result = await hyplerHelper.register(licenseNumber,'putInsuranceCompanyInfo',insCompanyData,org_name,'insurance',attrs,dept);
+    return res.status(result.status).send(result);
 
     UsersCacheModel.findOne({ email: email, type: 'insurance' }).then((currentUser) => {
         if (!currentUser) {
@@ -65,43 +70,26 @@ module.exports.register = (req, res) => {
     });
 };
 
-module.exports.pull = (req, res) => {
+module.exports.pull = async (req, res) => {
     const licenseNumber = req.query.licenseNumber;
-    return runQueryWithIdentity(req, res, licenseNumber, 'insuranceGetOpenRequests');
+    let result = await hyplerHelper.runQueryWithIdentity(licenseNumber, 'insuranceGetOpenRequests', 'insurance', org_name);
+    return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);
 };
 
-module.exports.putOffer = (req, res) => {
-    const { licenseNumber,userHash,requestHash, amount } = req.body
-    return runMethodWithIdentity(req, res,'insurancePutOffer',[userHash,requestHash,amount + '',uniqueString()],licenseNumber);
+module.exports.putOffer = async (req, res) => {
+    const { licenseNumber, userHash, requestHash, amount } = req.body
+    let response = await hyplerHelper.runMethodWithIdentity( 'insurancePutOffer',[userHash, requestHash, amount + '', uniqueString()],licenseNumber, 'insurance', org_name);
+    return res.status(response.status).send({ err: response.err });
 };
 
-module.exports.pull = (req, res) => {
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'insuranceGetOpenRequests', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
-        if (!response)
-            throw 'Not a proper response for insuranceGetOpenRequests'
+// module.exports.pull = (req, res) => {
+//     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'insuranceGetOpenRequests', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
+//         if (!response)
+//             throw 'Not a proper response for insuranceGetOpenRequests'
 
-        let ret = response[0].toString('utf8');
-        if (ret.length == 0)
-            ret = "{}"
-        return res.status(200).send(JSON.parse(ret));
-    });
-};
-
-const runMethodWithIdentity = (req, res, methodName, data, email) => {
-    UsersCacheModel.findOne({ email: email, type: 'insurance' }).then((currentUser) => {
-        if (!currentUser) {
-            return res.status(400).send('user was not found');
-        }
-        else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password).then((response) => {
-                if (!response) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem executing ' + methodName });
-                }
-                return res.status(200).send(response);
-            });
-        }
-    }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-    });
-};
-
+//         let ret = response[0].toString('utf8');
+//         if (ret.length == 0)
+//             ret = "{}"
+//         return res.status(200).send(JSON.parse(ret));
+//     });
+// };

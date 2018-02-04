@@ -11,6 +11,7 @@ const UsersCacheModel = db.model('UsersCache');
 const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_pocbuyer';
 const uniqueString = require('unique-string');
+const hyplerHelper = require('./../hyplerHelper');
 const { last, filter } = require('lodash');
 const [adminUsername, adminPassword] = [config.admins[0].username, config.admins[0].secret];
 
@@ -51,62 +52,8 @@ const dept = 'mashreq' + '.department1';
  * @param {String} req.body.Status
  */
 
-const runMethodAndRegister = async (req, res, methodName, data, userData) => {
-    const email = String(userData.Email).toLowerCase();
-    const type = 'buyer';
 
-    try {
-        const currentUser = await UsersCacheModel.findOne({ email, type });
-        if (!currentUser) {
-            const registerResult = await helper.register(org_name, email, attrs, dept, adminUsername, adminPassword)
-            if (!registerResult && !registerResult.secret) throw 'Problem registering user';
-            const user = await UsersCacheModel({
-                email, type,
-                password: registerResult.secret,
-                key: registerResult.key,
-                certificate: registerResult.certificate,
-                rootCertificate: registerResult.rootCertificate,
-            }).save();
-            if (!user) throw 'Problem saving the user';
-            let response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBuyerPersonalInfo', [JSON.stringify(userData)], org_name, email, registerResult.secret, null, null, { returnUser: true })
-            if (!response) throw 'Problem saving the user inside blockchain';
-
-            response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, registerResult.secret, null, null, { returnUser: true })
-            if (!response) throw 'Problem putting buyer\'s request';
-            return res.status(200).send(response);
-        } else {
-            const response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password, null, null, { returnUser: true })
-            if (!response) throw 'Problem executing ' + methodName;
-            return res.status(200).send(response);
-        }
-
-    } catch (err) {
-        return res.status(400).send(err);
-    }
-};
-
-const runMethodWithIdentity = (req, res, methodName, data, email) => {
-    email = email.toLowerCase();
-    UsersCacheModel.findOne({ email: email, type: 'buyer' }).then((currentUser) => {
-        if (!currentUser) {
-            return res.status(400).send('user was not found');
-        }
-        else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password).then((response) => {
-                if (!response) {
-                    return res.status(400).send({ err: ' Problem executing ' + methodName });
-                }
-                return res.status(200).send(response);
-            });
-        }
-    }).catch((err) => {
-        return res.status(400).send({ err: err });
-    });
-};
-
-
-
-module.exports.buy = (req, res) => {
+module.exports.buy = async (req, res) => {
 
     const { email, idNumber, idBase64, fullName, propertyHash, sellerHash, salary, loanAmount, duration } = req.body
     const putBuyerPersonalInfoData = {
@@ -126,75 +73,45 @@ module.exports.buy = (req, res) => {
         LoanAmount: parseInt(loanAmount, 10)
     };
 
-    return runMethodAndRegister(req, res, 'buy', [JSON.stringify(buyData)], putBuyerPersonalInfoData);
+    const result = await hyplerHelper.runMethodAndRegister('buy', 'putBuyerPersonalInfo', [JSON.stringify(buyData)], [JSON.stringify(putBuyerPersonalInfoData)],email, org_name, 'buyer', attrs, dept);
+    return res.status(result.status).send(result);
 };
 
 module.exports.getMyRequests = async (req, res) => {
+
     const email = req.query.email.toLowerCase();
-    try {
-        const currentUser = await UsersCacheModel.findOne({ email, type: 'buyer' });
-        if (!currentUser) throw 'User not found'
 
-        const response = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buyerGetMyRequests', ['{}'], org_name, email, currentUser.password)
-        if (!response) throw 'Not a proper response for buyerGetMyRequests'
+    const result = await hyplerHelper.runQueryWithIdentity(email, 'buyerGetMyRequests', 'buyer', org_name);
+    return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);
 
-        let ret = response[0].toString('utf8');
-        ret = JSON.parse(ret);
+    // try {
+    //     const currentUser = await UsersCacheModel.findOne({ email, type: 'buyer' });
+    //     if (!currentUser) throw 'User not found'
 
-        // Get only results of the last mortgage request by the latest hash in the array
-        let retFiltered = ret;// filter(ret, { Hash: last(ret)['Hash'] })
-        return res.status(200).send(retFiltered);
-    }
-    catch (err) {
-        console.log("Check getMyRequests at buyerController.js", err);
-        return res.status(400).send(err);
-    }
+    //     const response = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buyerGetMyRequests', ['{}'], org_name, email, currentUser.password)
+    //     if (!response) throw 'Not a proper response for buyerGetMyRequests'
+
+    //     let ret = response[0].toString('utf8');
+    //     ret = JSON.parse(ret);
+
+    //     // Get only results of the last mortgage request by the latest hash in the array
+    //     let retFiltered = ret;// filter(ret, { Hash: last(ret)['Hash'] })
+    //     return res.status(200).send(retFiltered);
+    // }
+    // catch (err) {
+    //     console.log("Check getMyRequests at buyerController.js", err);
+    //     return res.status(400).send(err);
+    // }
 };
 
-module.exports.selectBankOffer = (req, res) => {
+module.exports.selectBankOffer = async (req, res) => {
     const { email, requestHash, selectedBankOfferHash } = req.body
     const data = [
         requestHash, selectedBankOfferHash
     ];
 
-    return runMethodWithIdentity(req, res, 'buyerSelectBankOffer', data, email);
-};
-
-module.exports.uploadDocuments = (req, res) => {
-    const body = {};
-    invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), config.get('lending_chaincode'), 'putBuyerPersonalInfo', [JSON.stringify(body)], adminUsername, 'org_pocseller').then((response) => {
-        return res.send(response);
-    }).catch((err) => {
-        console.log(err);
-    });
-};
-
-module.exports.getConfirmedRequests = (req, res) => {
-    return res.send([
-        {
-            interestRate: 1,
-            fiId: '12321321',
-            months: 24,
-            fiName: '123213',
-        },
-        {
-            interestRate: 2,
-            fiId: '1232132sad1',
-            months: 24,
-            fiName: '12321asdads3',
-        },
-    ]);
-};
-
-module.exports.acceptOfferFromBank = (req, res) => {
-    const offerId = req.body.offerId;
-    return res.send({
-        offerId: 123131,
-        status: 'CONFIRMED_BY_USER',
-        txHash: '1232131',
-        chaincodeAddress: 'asdasdasdasdasd',
-
-    });
+    const result = await hyplerHelper.runMethodWithIdentity('buyerSelectBankOffer', data, email, 'buyer', org_name);
+    return res.status(result.status).send(result);
 };
 
 // list of appraiser
@@ -205,105 +122,55 @@ module.exports.listOfAppraisers = (req, res) => {
 
         let ret = response[0].toString('utf8');
 
-        if(ret.length == 0)
-        ret="{}"
+        if (ret.length == 0)
+            ret = "{}"
 
         return res.status(200).send(JSON.parse(ret));
         //cb(JSON.parse(ret));
     });
 };
 
-// list of insurance offers with the price
-module.exports.listOfInsuranceOffers = (req, res) => {
-    return res.send([
-        {
-            montlyPrice: 1213,
-            insuranceId: 123123
-        }
-    ]);
-};
-
-module.exports.selectAppraiser = (req, res) => {
+module.exports.selectAppraiser = async (req, res) => {
     const { email, appraiserHash, requestHash } = req.body
     const data = [
         requestHash, appraiserHash
     ];
 
-    return runMethodWithIdentity(req, res, 'buyerSelectAppraiser', data, email);
+    const result = await hyplerHelper.runMethodWithIdentity('buyerSelectAppraiser', data, email, 'buyer', org_name);
+    return res.status(result.status).send(result);
 };
 
-module.exports.selectInsuranceOffer = (req, res) => {
+module.exports.selectInsuranceOffer = async (req, res) => {
     const { email, insuranceOfferHash, requestHash } = req.body
     const data = [
         requestHash, insuranceOfferHash
     ];
 
-    return runMethodWithIdentity(req, res, 'buyerSelectInsuranceOffer', data, email);
+    var result = await hyplerHelper.runMethodWithIdentity('buyerSelectInsuranceOffer', data, email, 'buyer', org_name);
+    return res.status(result.status).send(result);
 };
 
-module.exports.acceptOfferFromInsurance = (req, res) => {
-    const insuranceId = req.body.insuranceId;
-
-    return res.send({
-        txHash: 'asdadad',
-        status: 'INSURANCE_OFFER_ACCEPTED',
-        chaincodeAddress: '1231'
-    });
-};
-
-/**
- *
- * @param req
- * @param res
- *
- */
 module.exports.getProperties = async (req, res) => {
     const email = req.query.email.toLowerCase();
-    try {
-        const currentUser = await UsersCacheModel.findOne({ email, type: 'buyer' });
-        if (!currentUser) throw 'User not found'
 
-        const response = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getMyInfo', ['{}'], org_name, email, currentUser.password)
-        if (!response) throw 'Not a proper response for buyerGetMyRequests'
-
-        let ret = response[0].toString('utf8');
-        ret = JSON.parse(ret);
-
-        // Get only results of the last mortgage request by the latest hash in the array
-        let retFiltered = ret;// filter(ret, { Hash: last(ret)['Hash'] })
-        return res.status(200).send(retFiltered);
-    }
-    catch (err) {
-        console.log("Check getMyRequests at buyerController.js", err);
-        return res.status(400).send(err);
-    }
+    const result = await hyplerHelper.runQueryWithIdentity(email, 'getMyInfo', 'buyer', org_name);
+    return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);
 };
 
-module.exports.getProperties4Sale = (req, res) => {
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
-        if (!response)
-            throw 'Not a proper response for getProperties4Sale'
+module.exports.getProperties4Sale = async (req, res) => {
+    var result = await hyplerHelper.runQueryWithCredentials('getProperties4Sale', 'buyer', org_name, adminUsername, adminPassword);
+    return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);
 
-        let ret = response[0].toString('utf8');
+    // return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
+    //     if (!response)
+    //         throw 'Not a proper response for getProperties4Sale'
 
-        return res.status(200).send(JSON.parse(ret));
-    });
+    //     let ret = response[0].toString('utf8');
+
+    //     return res.status(200).send(JSON.parse(ret));
+    // });
 };
 
-module.exports.getProperties4SaleSocket = (cb) => {
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
-        if (!response)
-            throw 'Not a proper response for getProperties4Sale'
-
-        let ret = response[0].toString('utf8');
-
-        if (ret.length == 0)
-            ret = "{}"
-        return res.status(200).send(JSON.parse(ret));
-            
-        //cb(JSON.parse(ret));
-    });
-};
 
 module.exports.query = (req, res) => {
     const query = req.query.query;
@@ -316,3 +183,19 @@ module.exports.query = (req, res) => {
         return res.status(200).send(JSON.parse(ret));
     });
 };
+
+
+// module.exports.getProperties4SaleSocket = (cb) => {
+//     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
+//         if (!response)
+//             throw 'Not a proper response for getProperties4Sale'
+
+//         let ret = response[0].toString('utf8');
+
+//         if (ret.length == 0)
+//             ret = "{}"
+//         return res.status(200).send(JSON.parse(ret));
+
+//         //cb(JSON.parse(ret));
+//     });
+// };

@@ -68,16 +68,16 @@ module.exports.advertise = (req, res) => {
                         return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
                     }
                     return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putSellerPersonalInfo', [JSON.stringify(sellerData)], org_name, email, registerResult.secret).then((response) => {
-                        if (!response) {
+                        if (response == 200) {
                             return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
                         }
                         return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'advertise', [JSON.stringify(data)], org_name, email, registerResult.secret).then((response) => {
-                            if (!response) {
-                                return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting property' });
+                            if (response.status != 200) {
+                                return res.status(status).send({ response });
                             }
                             // Emit a new list of the properties
                             //socket().emitPropertiesList();
-                            return res.status(200).send({txId: response});
+                            return res.status(response.status).send({response});
                         });
                     });
                 });
@@ -85,43 +85,18 @@ module.exports.advertise = (req, res) => {
         }
         else {
             return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'advertise', [JSON.stringify(data)], org_name, email, currentUser.password).then((response) => {
-                if (!response) {
+                if (response == 200) {
                     return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting property' });
                 }
                 // Emit a new list of the properties
                 //socket().emitPropertiesList();
-                return res.status(200).send({newPropertyHash: response});
+                return res.status(response.status).send({response});
             });
         }
     }).catch((err) => {
         return res.status(httpStatus.BAD_REQUEST).send({ err: err });
     });
 };
-
-// module.exports.getProperties = (req, res) => {
-//     const email = req.query.email;
-
-//     UsersCacheModel.findOne({ email: email, type: 'seller' }).then((currentUser) => {
-//         if (currentUser) {
-
-//             return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties', [JSON.stringify({})], org_name, email, currentUser.secret).then((response) => {
-//                 if (!response) {
-//                     return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
-//                 }
-//                 //we must handle error in more proper way
-//                 return res.status(200).send(JSON.parse(response[0].toString('utf8')));
-
-//                 const array = [];
-//                 for (let i = 0; i < response.length; i++) {
-//                     array.push(response[i].toString('utf8'));
-//                 }
-//                 return res.status(200).send(JSON.parse(array));
-//             });
-//         }
-//         else
-//             return res.status(400).send("user not found");
-//     });
-// };
 
 module.exports.getProperties = async (req, res) => {
     const email = req.query.email.toLowerCase();
@@ -130,7 +105,7 @@ module.exports.getProperties = async (req, res) => {
         if (!currentUser) throw 'User not found'
 
         const response = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getMyInfo', ['{}'], org_name, email, currentUser.password)
-        if (!response) throw 'Not a proper response for sellerGetMyRequests'
+        if (response == 200) throw 'Not a proper response for sellerGetMyRequests'
 
         let ret = response[0].toString('utf8');
         ret = JSON.parse(ret);
