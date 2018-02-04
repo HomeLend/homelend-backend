@@ -53,53 +53,6 @@ module.exports.advertise = async (req, res) => {
 
     const result = await hyplerHelper.runMethodAndRegister('advertise', 'putSellerPersonalInfo', [JSON.stringify(data)], [JSON.stringify(sellerData)], email, org_name, 'seller', attrs, dept);
     return res.status(result.status).send(result);
-
-    UsersCacheModel.findOne({ email: email, type: 'seller' }).then((currentUser) => {
-        if (!currentUser) {
-            return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
-                if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering user' });
-                }
-                return UsersCacheModel({
-                    email: email,
-                    password: registerResult.secret,
-                    type: 'seller',
-                    key: registerResult.key,
-                    certificate: registerResult.certificate,
-                    rootCertificate: registerResult.rootCertificate
-                }).save().then((user) => {
-                    if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
-                    }
-                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putSellerPersonalInfo', [JSON.stringify(sellerData)], org_name, email, registerResult.secret).then((response) => {
-                        if (response == 200) {
-                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
-                        }
-                        return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'advertise', [JSON.stringify(data)], org_name, email, registerResult.secret).then((response) => {
-                            if (response.status != 200) {
-                                return res.status(status).send({ response });
-                            }
-                            // Emit a new list of the properties
-                            //socket().emitPropertiesList();
-                            return res.status(response.status).send({ response });
-                        });
-                    });
-                });
-            });
-        }
-        else {
-            return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'advertise', [JSON.stringify(data)], org_name, email, currentUser.password).then((response) => {
-                if (response == 200) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting property' });
-                }
-                // Emit a new list of the properties
-                //socket().emitPropertiesList();
-                return res.status(response.status).send({ response });
-            });
-        }
-    }).catch((err) => {
-        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-    });
 };
 
 module.exports.getProperties = async (req, res) => {
