@@ -10,6 +10,7 @@ const queryChaincode = require('./hl/query');
 const org_name = 'org_pocinsurance';
 const uniqueString = require('unique-string');
 const hyplerHelper = require('./../hyplerHelper');
+const { uniqueId } = require('lodash');
 
 const attrs = [
     {
@@ -25,18 +26,17 @@ const dept = 'mashreq' + '.department1';
 const [adminUsername, adminPassword] = [config.admins[0].username, config.admins[0].secret];
 
 module.exports.register = async (req, res) => {
-    const { licenseNumber, name, address } = req.body
+    const { name, licenseNumber = uniqueId(), address = 'doesnt matter' } = req.body
     const insCompanyData = {
         Hash: uniqueString(),
-        LicenseNumber: licenseNumber,
+        email: licenseNumber,
         Name: name,
         Address: address,
     };
 
-    email = licenseNumber;
-
     result = await hyplerHelper.register(licenseNumber, 'putInsuranceCompanyInfo', insCompanyData, org_name, 'insurance', attrs, dept);
-    return res.status(result.status).send(result);
+    if(result.err) return console.log("Err from blockchain:", result.err)
+    return res.status(result.status).send({tx_id: result, licenseNumber: insCompanyData.LicenseNumber });
 };
 
 module.exports.pull = async (req, res) => {
