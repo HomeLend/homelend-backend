@@ -39,38 +39,6 @@ module.exports.calculateRating = async (req, res) => {
 	const bankPutOfferData = [JSON.stringify(requestLink), uniqueString(), parseFloat(interest) + ""];
 	result = await hyplerHelper.runMethodAndRegister('bankPutOffer', 'putBankInfo', bankPutOfferData, [JSON.stringify(bankData)],swiftNumber, org_name, 'bank', attrs, dept);
 	return res.status(result.status).send(result);
-
-	// try {
-	// 	const currentUser = await UsersCacheModel.findOne({ email: swiftNumber, type: 'bank' })
-	// 	let passOrSecret = get(currentUser, 'password');
-	// 	if (!currentUser) {
-	// 		const registerResult = await helper.register(org_name, swiftNumber, attrs, dept, adminUsername, adminPassword)
-	// 		if (!registerResult && !registerResult.secret) throw 'Problem registering agency';
-
-	// 		const newBankDetails = {
-	// 			email: swiftNumber,
-	// 			password: registerResult.secret,
-	// 			type: 'bank',
-	// 			key: registerResult.key,
-	// 			certificate: registerResult.certificate,
-	// 			rootCertificate: registerResult.rootCertificate,
-	// 		};
-	// 		const user = await UsersCacheModel(newBankDetails).save();
-	// 		if (!user) throw 'Problem saving the bank';
-
-	// 		const response = await invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putBankInfo', [JSON.stringify(bankData)], org_name, swiftNumber, registerResult.secret)
-	// 		if (response.status != 200) throw response.err;
-
-	// 		passOrSecret = registerResult.secret;
-	// 	}
-
-	// 	const responseOffer = await invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'bankPutOffer', bankPutOfferData, org_name, swiftNumber, passOrSecret)
-	// 	return res.status(responseOffer.status).send(responseOffer);
-	// }
-	// catch (err) {
-	// 	console.log("Check bankController.js, calculateRating: ", err);
-	// 	return res.status(400).send({ err: err });
-	// }
 };
 
 
@@ -86,19 +54,6 @@ module.exports.bankApprove = async (req, res) => {
 
 	const response = await hyplerHelper.runMethodWithIdentity('bankApprove', requestData, swiftNumber, 'bank', org_name);
 	return res.status(response.status).send({ err: response.err });
-
-	// UsersCacheModel.findOne({ email: swiftNumber, type: 'bank' }).then((currentUser) => {
-	// 	if (!currentUser) {
-	// 		return res.status(400).send('user was not found');
-	// 	}
-	// 	else {
-	// 		return invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'bankApprove', requestData, org_name, swiftNumber, currentUser.password).then((response) => {
-	// 			return res.status(response.status).send(response);
-	// 		});
-	// 	}
-	// }).catch((err) => {
-	// 	return res.status(400).send({ err: err });
-	// });
 };
 
 module.exports.bankRunChaincode = async (req, res) => {
@@ -113,19 +68,6 @@ module.exports.bankRunChaincode = async (req, res) => {
 
 	const response = await hyplerHelper.runMethodWithIdentity('bankRunChaincode', requestData, swiftNumber, 'bank', org_name);
 	return res.status(response.status).send({ err: response.err });
-
-	// UsersCacheModel.findOne({ email: swiftNumber, type: 'bank' }).then((currentUser) => {
-	// 	if (!currentUser) {
-	// 		return res.status(400).send('user was not found');
-	// 	}
-	// 	else {
-	// 		return invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'bankRunChaincode', requestData, org_name, swiftNumber, currentUser.password).then((response) => {
-	// 			return res.status(response.status).send(response);
-	// 		});
-	// 	}
-	// }).catch((err) => {
-	// 	return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-	// });
 };
 
 module.exports.pull = async (req, res) => {
@@ -150,11 +92,11 @@ module.exports.pull = async (req, res) => {
 		reqData = reqData[0].toString();
 		reqData = JSON.parse(reqData);
 
-		return res.status(200).send(reqData);
+		return res.status(httpStatus.OK).send(reqData);
 	}
 	catch (err) {
 		console.log("Check bankController.js, pull: ", err);
-		return res.status(400).send({ err: err });
+		return res.status(httpStatus.BAD_REQUEST).send({ err: err.message });
 	}
 };
 
@@ -164,59 +106,12 @@ module.exports.pullPending4Final = async (req, res) => {
 	const { swiftNumber } = req.query;
 
 	const result = await hyplerHelper.runQueryWithIdentity(swiftNumber, 'bankPullPending4FinalAppproval', 'bank', org_name);
-	return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);
-
-	// return res.status(200).send(reqData);
-	// try {
-	// 	currentUser = await UsersCacheModel.findOne({ email: swiftNumber, type: 'bank' });
-	// 	if (!currentUser) {
-	// 		return res.status(400).send('user was not found');
-	// 	}
-	// 	else {
-	// 		let reqData = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'bankPullPending4FinalAppproval', [JSON.stringify({})], org_name, swiftNumber, currentUser.password)
-	// 		if (!reqData)
-	// 			throw 'Not a proper response for bankPullOpen4bankOffers';
-
-	// 		if (reqData[0].length == 0)
-	// 			return res.status(200).send({});
-
-	// 		reqData = reqData[0].toString();
-	// 		reqData = JSON.parse(reqData);
-	// 		return res.status(200).send(reqData);
-	// 	}
-	// }
-	// catch (err) {
-	// 	console.log("bankController.js, pullPending4Final: ", err);
-	// 	return res.status(400).send({ err: err });
-	// }
+	return result.status == httpStatus.OK ? res.status(httpStatus.OK).send(result.data) : res.status(result.status).send(result.err);
 };
 
 module.exports.PullForChainCodeExecute = async (req, res) => {
 	const { swiftNumber } = req.query;
 
 	const result = await hyplerHelper.runQueryWithIdentity(swiftNumber, 'bankPull4ChaninCodeExecute', 'bank', org_name);
-	return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);
-
-	// try {
-	// 	currentUser = await UsersCacheModel.findOne({ email: swiftNumber, type: 'bank' });
-	// 	if (!currentUser) {
-	// 		return res.status(400).send('user was not found');
-	// 	}
-	// 	else {
-	// 		let reqData = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'bankPull4ChaninCodeExecute', [JSON.stringify({})], org_name, swiftNumber, currentUser.password)
-	// 		if (!reqData)
-	// 			throw 'Not a proper response for bankPullOpen4bankOffers';
-
-	// 		if (reqData[0].length == 0)
-	// 			return res.status(200).send({});
-
-	// 		reqData = reqData[0].toString();
-	// 		reqData = JSON.parse(reqData);
-	// 		return res.status(200).send(reqData);
-	// 	}
-	// }
-	// catch (err) {
-	// 	console.log("bankController.js, pullPending4Final: ", err);
-	// 	return res.status(400).send({ err: err });
-	// }
+	return result.status == httpStatus.OK ? res.status(httpStatus.OK).send(result.data) : res.status(result.status).send(result.err);
 };

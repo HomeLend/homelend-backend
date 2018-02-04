@@ -31,76 +31,10 @@ module.exports.updateRequest = async (req, res) => {
 
   const result = await hyplerHelper.runMethodAndRegister('governmentPutData', null, data, null, 'demo@gov.il', org_name, 'government', attrs, dept);
   return res.status(result.status).send(result);
-
-  // return runMethodAndRegister(req,res,'governmentPutData',data,null);
-  // invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'governmentPutData', data, org_name, adminUsername, adminPassword).then((response) => {
-  //   if (!response) {
-  //     return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem executing ' + methodName });
-  //   }
-  //   return res.status(200).send(response);
-  // });
 };
 
 module.exports.pull = async (req, res) => {
 
   const result = await hyplerHelper.runQueryWithCredentials('governmentPullPending', 'government', org_name, adminUsername, adminPassword);
   return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);
-  // return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'governmentPullPending', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
-  //   if (!response)
-  //     throw 'Not a proper response for getProperties4Sale'
-
-  //   let ret = response[0].toString('utf8');
-
-  //   if (ret.length == 0)
-  //     ret = "{}"
-  //   return res.status(200).send(JSON.parse(ret));
-  //   //cb(JSON.parse(ret));
-  // });
-};
-
-
-
-
-
-const runMethodAndRegister = (req, res, methodName, data, userData) => {
-
-  const email = 'ran1'
-  UsersCacheModel.findOne({ email: email, type: 'government' }).then((currentUser) => {
-    if (!currentUser) {
-      return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
-        if (!registerResult && !registerResult.secret) {
-          return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering user' });
-        }
-        return UsersCacheModel({
-          email: email,
-          password: registerResult.secret,
-          type: 'government',
-          key: registerResult.key,
-          certificate: registerResult.certificate,
-          rootCertificate: registerResult.rootCertificate,
-        }).save().then((user) => {
-          if (!user) {
-            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
-          }
-          return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, user.email, user.password).then((response) => {
-            if (!response) {
-              return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem putting government\'s request' });
-            }
-            return res.status(200).send(response);
-
-          });
-        });
-      });
-    }
-    else {
-      return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password).then((response) => {
-        if (!response) {
-          return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem executing ' + methodName });
-        }
-        return res.status(200).send(response);
-      });
-    }
-  }).catch((err) => {
-    return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-  });
 };

@@ -12,6 +12,7 @@ const uniqueString = require('unique-string');
 const queryChaincode = require('./hl/query');
 const { filter } = require('lodash');
 const [adminUsername, adminPassword] = [config.admins[0].username, config.admins[0].secret];
+const hyplerHelper = require('./../hyplerHelper');
 
 const attrs = [
     {
@@ -28,7 +29,6 @@ const dept = 'mashreq' + '.department1';
 module.exports.calculateRating = async (req, res) => {
     const { name, licenseNumber, requestHash, userHash } = req.body;
     let score = Math.random();
-    if (score > 0.66) score = "A"; else if (score > 0.33) score = "B"; else score = "C";
 
     const creditRatingAgencyData = {
         Name: name,
@@ -39,62 +39,17 @@ module.exports.calculateRating = async (req, res) => {
         RequestHash: requestHash,
         UserHash: userHash
     }
-    try {
-        let response = '';
-        const currentUser = await UsersCacheModel.findOne({ email: licenseNumber, type: 'credit-rating' })
-        if (!currentUser) {
-            const registerResult = await helper.register(org_name, licenseNumber, attrs, dept, adminUsername, adminPassword)
-            if (!registerResult && !registerResult.secret) throw 'Problem registering agency'
-            const user = await UsersCacheModel({
-                email: licenseNumber,
-                password: registerResult.secret,
-                type: 'credit-rating',
-                key: registerResult.key,
-                certificate: registerResult.certificate,
-                rootCertificate: registerResult.rootCertificate
-            }).save();
-            if (!user) throw 'Problem saving the agency'
 
-            response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putCreditRatingAgencyInfo', [JSON.stringify(creditRatingAgencyData)], org_name, licenseNumber, registerResult.secret)
-            if (!response) throw 'Problem saving the agency inside blockchain'
-
-            response = invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify(creditScorePayload)], org_name, licenseNumber, registerResult.secret)
-            if (!response) throw 'Problem updating credit score'
-
-        } else {
-
-            response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditScore', [JSON.stringify(creditScorePayload)], org_name, licenseNumber, currentUser.password)
-            if (!response) throw 'Problem updating credit score'
-
-        }
-        return res.status(200).send(response);
-    }
-    catch (err) {
-        return res.status(httpStatus.BAD_REQUEST).send({ err: err });
-    }
+    result = await hyplerHelper.runMethodAndRegister('creditScore', 'putCreditRatingAgencyInfo', [JSON.stringify(creditScorePayload)], [JSON.stringify(creditRatingAgencyData)], licenseNumber, org_name, 'credit-rating', attrs, dept);
+    return res.status(result.status).send(result);
 }
 
-
-module.exports.getCreditRatingListSocket = async (cb) => {
+module.exports.pull = async (req, res) => {
     try {
-        const response = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditRatingPull', [JSON.stringify({})], org_name, adminUsername, adminPassword)
-        if (!response)
-            throw 'Not a proper response for creditScoreController: getCreditRatingListSocket'
+        const { buyerHash } = req.body;
 
-        let ret = response[0].toString('utf8');
-        return res.status(200).send(JSON.parse(ret));
-
-        //cb(JSON.parse(ret));
-    }
-    catch (err) {
-        console.log("something broke", err)
-    }
-};
-
-module.exports.pull = (req, res) => {
-    const { buyerHash } = req.body;
-    if (!buyerHash) throw 'No buyer hash received, make sure to provide a buyer hash before fetching requests'
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditRatingPull', [JSON.stringify({})], org_name, adminUsername, adminPassword).then(async (response) => {
+        if (!buyerHash) throw 'No buyer hash received, make sure to provide a buyer hash before fetching requests'
+        response = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'creditRatingPull', [JSON.stringify({})], org_name, adminUsername, adminPassword);
         if (!response)
             throw 'Not a proper response for creditScoreController: pull'
 
@@ -111,6 +66,8 @@ module.exports.pull = (req, res) => {
         reqData = reqData[0].toString();
         reqData = JSON.parse(reqData);
 
-        return res.status(200).send(reqData);
-    });
+        return res.status(httpStatus.OK).send(reqData);
+    } catch (err) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err.message);
+    }
 };

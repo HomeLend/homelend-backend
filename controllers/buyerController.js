@@ -73,7 +73,7 @@ module.exports.buy = async (req, res) => {
         LoanAmount: parseInt(loanAmount, 10)
     };
 
-    const result = await hyplerHelper.runMethodAndRegister('buy', 'putBuyerPersonalInfo', [JSON.stringify(buyData)], [JSON.stringify(putBuyerPersonalInfoData)],email, org_name, 'buyer', attrs, dept);
+    const result = await hyplerHelper.runMethodAndRegister('buy', 'putBuyerPersonalInfo', [JSON.stringify(buyData)], [JSON.stringify(putBuyerPersonalInfoData)], email, org_name, 'buyer', attrs, dept);
     return res.status(result.status).send(result);
 };
 
@@ -83,25 +83,6 @@ module.exports.getMyRequests = async (req, res) => {
 
     const result = await hyplerHelper.runQueryWithIdentity(email, 'buyerGetMyRequests', 'buyer', org_name);
     return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);
-
-    // try {
-    //     const currentUser = await UsersCacheModel.findOne({ email, type: 'buyer' });
-    //     if (!currentUser) throw 'User not found'
-
-    //     const response = await queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buyerGetMyRequests', ['{}'], org_name, email, currentUser.password)
-    //     if (!response) throw 'Not a proper response for buyerGetMyRequests'
-
-    //     let ret = response[0].toString('utf8');
-    //     ret = JSON.parse(ret);
-
-    //     // Get only results of the last mortgage request by the latest hash in the array
-    //     let retFiltered = ret;// filter(ret, { Hash: last(ret)['Hash'] })
-    //     return res.status(200).send(retFiltered);
-    // }
-    // catch (err) {
-    //     console.log("Check getMyRequests at buyerController.js", err);
-    //     return res.status(400).send(err);
-    // }
 };
 
 module.exports.selectBankOffer = async (req, res) => {
@@ -115,19 +96,9 @@ module.exports.selectBankOffer = async (req, res) => {
 };
 
 // list of appraiser
-module.exports.listOfAppraisers = (req, res) => {
-    return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'buyerGetAllAppraisers', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
-        if (!response)
-            throw 'Not a proper response for getProperties4Sale'
-
-        let ret = response[0].toString('utf8');
-
-        if (ret.length == 0)
-            ret = "{}"
-
-        return res.status(200).send(JSON.parse(ret));
-        //cb(JSON.parse(ret));
-    });
+module.exports.listOfAppraisers = async (req, res) => {
+    const result = await hyplerHelper.runQueryWithCredentials('buyerGetAllAppraisers', 'buyer', org_name, adminUsername, adminPassword);
+    return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);
 };
 
 module.exports.selectAppraiser = async (req, res) => {
@@ -160,15 +131,6 @@ module.exports.getProperties = async (req, res) => {
 module.exports.getProperties4Sale = async (req, res) => {
     var result = await hyplerHelper.runQueryWithCredentials('getProperties4Sale', 'buyer', org_name, adminUsername, adminPassword);
     return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);
-
-    // return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
-    //     if (!response)
-    //         throw 'Not a proper response for getProperties4Sale'
-
-    //     let ret = response[0].toString('utf8');
-
-    //     return res.status(200).send(JSON.parse(ret));
-    // });
 };
 
 
@@ -183,19 +145,3 @@ module.exports.query = (req, res) => {
         return res.status(200).send(JSON.parse(ret));
     });
 };
-
-
-// module.exports.getProperties4SaleSocket = (cb) => {
-//     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'getProperties4Sale', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
-//         if (!response)
-//             throw 'Not a proper response for getProperties4Sale'
-
-//         let ret = response[0].toString('utf8');
-
-//         if (ret.length == 0)
-//             ret = "{}"
-//         return res.status(200).send(JSON.parse(ret));
-
-//         //cb(JSON.parse(ret));
-//     });
-// };

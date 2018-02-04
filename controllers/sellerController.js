@@ -11,6 +11,7 @@ const chaincodeName = config.get('lending_chaincode');
 const org_name = 'org_pocseller';
 const uniqueString = require('unique-string');
 const queryChaincode = require('./hl/query');
+const hyplerHelper = require('./../hyplerHelper');
 
 const socket = require('../controllers/socket');
 const attrs = [
@@ -24,7 +25,7 @@ const attrs = [
         'hf.Registrar.Attributes': '*',
     }];
 const dept = 'mashreq' + '.department1';
-const [ adminUsername, adminPassword ] = [config.admins[0].username, config.admins[0].secret];
+const [adminUsername, adminPassword] = [config.admins[0].username, config.admins[0].secret];
 
 /**
  *
@@ -35,7 +36,7 @@ const [ adminUsername, adminPassword ] = [config.admins[0].username, config.admi
  * @param req.body.SellingPrice
  *
  */
-module.exports.advertise = (req, res) => {
+module.exports.advertise = async (req, res) => {
     const { fullName, idNumber, email, address, sellingPrice, imageBase64 } = req.body;
     const sellerData = {
         FullName: fullName,
@@ -49,6 +50,9 @@ module.exports.advertise = (req, res) => {
         SellingPrice: parseFloat(sellingPrice),
         ImageBase64: imageBase64
     };
+
+    const result = await hyplerHelper.runMethodAndRegister('advertise', 'putSellerPersonalInfo', [JSON.stringify(data)], [JSON.stringify(sellerData)], email, org_name, 'seller', attrs, dept);
+    return res.status(result.status).send(result);
 
     UsersCacheModel.findOne({ email: email, type: 'seller' }).then((currentUser) => {
         if (!currentUser) {
@@ -77,7 +81,7 @@ module.exports.advertise = (req, res) => {
                             }
                             // Emit a new list of the properties
                             //socket().emitPropertiesList();
-                            return res.status(response.status).send({response});
+                            return res.status(response.status).send({ response });
                         });
                     });
                 });
@@ -90,7 +94,7 @@ module.exports.advertise = (req, res) => {
                 }
                 // Emit a new list of the properties
                 //socket().emitPropertiesList();
-                return res.status(response.status).send({response});
+                return res.status(response.status).send({ response });
             });
         }
     }).catch((err) => {

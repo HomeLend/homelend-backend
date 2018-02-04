@@ -14,29 +14,30 @@
  *  limitations under the License.
  */
 'use strict';
-var path = require('path');
-var fs = require('fs');
-var util = require('util');
-var hfc = require('fabric-client');
-var Peer = require('fabric-client/lib/Peer.js');
-var helper = require('./helper.js');
-var { get } = require('lodash');
-var logger = helper.getLogger('invoke-chaincode');
-var EventHub = require('fabric-client/lib/EventHub.js');
-var ORGS = hfc.getConfigSetting('network-config');
+let path = require('path');
+let fs = require('fs');
+let util = require('util');
+let hfc = require('fabric-client');
+let Peer = require('fabric-client/lib/Peer.js');
+let helper = require('./helper.js');
+let { get } = require('lodash');
+let logger = helper.getLogger('invoke-chaincode');
+let EventHub = require('fabric-client/lib/EventHub.js');
+let ORGS = hfc.getConfigSetting('network-config');
 
-var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args, org, username, password, key, certificate, options = { returnUser: false }) {
+let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args, org, username, password, key, certificate, options = { returnUser: false }) {
     logger.debug(util.format('\n============ invoke transaction on organization %s ============\n', org));
-    var client = helper.getClientForOrg(org);
-    var channel = helper.getChannelForOrg(org);
-    var targets = (peerNames) ? helper.newPeers(peerNames, org) : undefined;
-    var tx_id = null;
-    var userHash = '';
+    let client = helper.getClientForOrg(org);
+    let channel = helper.getChannelForOrg(org);
+    let targets = (peerNames) ? helper.newPeers(peerNames, org) : undefined;
+    let tx_id = null;
+    let userHash = '';
+    let errMsg = null;
     return helper.enrollUser(org, username, password, key, certificate).then((user) => {
         tx_id = client.newTransactionID();
         logger.debug(util.format('Sending transaction "%j"', tx_id));
         // send proposal to endorser
-        var request = {
+        let request = {
             chaincodeId: chaincodeName,
             chaincodeVersion: 'v1',
             fcn: fcn,
@@ -53,16 +54,18 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
         logger.error('Failed to enroll user \'' + username + '\'. ' + err);
         throw new Error('Failed to enroll user \'' + username + '\'. ' + err);
     }).then((results) => {
-        var proposalResponses = results[0];
-        if (results != null && results[0] != null && results[0][0] != null)
+        let proposalResponses = results[0];
+        if (results != null && results[0] != null && results[0][0] != null && results[0][0].message != null) {
+            errMsg = results[0][0].message;
             console.log('results', fcn, args, results)
+        }
 
         userHash = get(results, '0.0.response.payload');
         if (userHash) userHash = userHash.toString();
 
-        var proposal = results[1];
-        var all_good = true;
-        for (var i in proposalResponses) {
+        let proposal = results[1];
+        let all_good = true;
+        for (let i in proposalResponses) {
             let one_good = false;
             if (proposalResponses && proposalResponses[i].response &&
                 proposalResponses[i].response.status === 200) {
@@ -79,15 +82,15 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 proposalResponses[0].response.status, proposalResponses[0].response.message,
                 proposalResponses[0].response.payload, proposalResponses[0].endorsement
                     .signature));
-            var request = {
+            let request = {
                 proposalResponses: proposalResponses,
                 proposal: proposal
             };
             // set the transaction listener and set a timeout of 30sec
             // if the transaction did not get committed within the timeout period,
             // fail the test
-            var transactionID = tx_id.getTransactionID();
-            var eventPromises = [];
+            let transactionID = tx_id.getTransactionID();
+            let eventPromises = [];
 
             if (!peerNames) {
                 peerNames = channel.getPeers().map(function (peer) {
@@ -95,7 +98,7 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 });
             }
 
-            var eventhubs = helper.newEventHubs(peerNames, org);
+            let eventhubs = helper.newEventHubs(peerNames, org);
             for (let key in eventhubs) {
                 let eh = eventhubs[key];
                 eh.connect();
@@ -126,7 +129,7 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 eventPromises.push(txPromise);
             }
 
-            var sendPromise = channel.sendTransaction(request);
+            let sendPromise = channel.sendTransaction(request);
             return Promise.all([sendPromise].concat(eventPromises)).then((results) => {
                 logger.debug(' event promise all complete and testing complete');
                 return results[0]; // the first returned value is from the 'sendPromise' which is from the 'sendTransaction()' call
@@ -154,18 +157,18 @@ var invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 return {
                     txId: tx_id.getTransactionID(),
                     userHash,
-                    status : 200
+                    status: 200
                 };
             else
                 return { status: 200, txId: tx_id.getTransactionID() };
         } else {
-            logger.error('Failed to order the transaction. Error: ' + response);
-            return { status: 500, err : 'Failed to order the transaction. Error: ' + response };
+            logger.error('Failed to order the transaction. Error: ' + response + ' ' + errMsg);
+            return { status: 500, err: 'Failed to order the transaction. Error: ' + response + ' ' + errMsg};
         }
     }, (err) => {
-        logger.error('Failed to send transaction due to error: ' + err.stack ? err
+        logger.error('Failed to send transaction due to error: ' + err.stack ? err + ' ' + errMsg
             .stack : err);
-        return { status: 500, err : 'Failed to send transaction due to error: ' + (err.stack ? err.stack : err) };
+        return { status: 500, err: 'Failed to send transaction due to error: ' + (err.stack ? err.stack : err ) + ' ' + errMsg };
     });
 };
 

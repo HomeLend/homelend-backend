@@ -25,7 +25,6 @@ const dept = 'mashreq' + '.department1';
 const [adminUsername, adminPassword] = [config.admins[0].username, config.admins[0].secret];
 
 module.exports.register = async (req, res) => {
-
     const { licenseNumber, name, address } = req.body
     const insCompanyData = {
         Hash: uniqueString(),
@@ -36,38 +35,8 @@ module.exports.register = async (req, res) => {
 
     email = licenseNumber;
 
-    result = await hyplerHelper.register(licenseNumber,'putInsuranceCompanyInfo',insCompanyData,org_name,'insurance',attrs,dept);
+    result = await hyplerHelper.register(licenseNumber, 'putInsuranceCompanyInfo', insCompanyData, org_name, 'insurance', attrs, dept);
     return res.status(result.status).send(result);
-
-    UsersCacheModel.findOne({ email: email, type: 'insurance' }).then((currentUser) => {
-        if (!currentUser) {
-            return helper.register(org_name, email, attrs, dept, adminUsername, adminPassword).then((registerResult) => {
-                if (!registerResult && !registerResult.secret) {
-                    return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem registering user' });
-                }
-                return UsersCacheModel({
-                    email: email,
-                    password: registerResult.secret,
-                    type: 'insurance',
-                    key: registerResult.key,
-                    certificate: registerResult.certificate,
-                    rootCertificate: registerResult.rootCertificate,
-                }).save().then((user) => {
-                    if (!user) {
-                        return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user' });
-                    }
-                    return invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, 'putInsuranceCompanyInfo', [JSON.stringify(insCompanyData)], org_name, email, registerResult.secret).then((response) => {
-                        if (!response) {
-                            return res.status(httpStatus.BAD_REQUEST).send({ err: ' Problem saving the user inside blockchain' });
-                        }
-                        else {
-                            return res.status(200).send(response);
-                        }
-                    });
-                });
-            });
-        }
-    });
 };
 
 module.exports.pull = async (req, res) => {
@@ -78,18 +47,6 @@ module.exports.pull = async (req, res) => {
 
 module.exports.putOffer = async (req, res) => {
     const { licenseNumber, userHash, requestHash, amount } = req.body
-    let response = await hyplerHelper.runMethodWithIdentity( 'insurancePutOffer',[userHash, requestHash, amount + '', uniqueString()],licenseNumber, 'insurance', org_name);
+    let response = await hyplerHelper.runMethodWithIdentity('insurancePutOffer', [userHash, requestHash, amount + '', uniqueString()], licenseNumber, 'insurance', org_name);
     return res.status(response.status).send({ err: response.err });
 };
-
-// module.exports.pull = (req, res) => {
-//     return queryChaincode.queryChaincode(['peer0'], config.get('channelName'), chaincodeName, 'insuranceGetOpenRequests', [JSON.stringify({})], org_name, adminUsername, adminPassword).then((response) => {
-//         if (!response)
-//             throw 'Not a proper response for insuranceGetOpenRequests'
-
-//         let ret = response[0].toString('utf8');
-//         if (ret.length == 0)
-//             ret = "{}"
-//         return res.status(200).send(JSON.parse(ret));
-//     });
-// };

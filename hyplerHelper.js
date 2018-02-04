@@ -48,7 +48,7 @@ exports.runMethodAndRegister = async (methodName, registerMethodName, data, user
                     return response;
             }
         }
-        if (registerMethodName == null)
+        if (methodName == null)
             return { status: httpStatus.OK };
 
         let response = await invokeChaincode.invokeChaincode(['peer0'], config.get('channelName'), chaincodeName, methodName, data, org_name, email, currentUser.password, null, null, { returnUser: true })
