@@ -104,10 +104,10 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 eh.connect();
                 let txPromise = new Promise((resolve, reject) => {
                     let wasResolved = false;
-                    
+
                     let handle = setTimeout(() => {
+                        eh.disconnect();
                         if (!wasResolved) {
-                            eh.disconnect();
                             reject();
                         }
                     }, 30000);
