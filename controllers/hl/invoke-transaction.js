@@ -102,14 +102,18 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
             for (let key in eventhubs) {
                 let eh = eventhubs[key];
                 eh.connect();
-
                 let txPromise = new Promise((resolve, reject) => {
+                    let wasResolved = false;
+                    
                     let handle = setTimeout(() => {
-                        eh.disconnect();
-                        reject();
+                        if (!wasResolved) {
+                            eh.disconnect();
+                            reject();
+                        }
                     }, 30000);
 
                     eh.registerTxEvent(transactionID, (tx, code) => {
+                        wasResolved = true;
                         clearTimeout(handle);
                         eh.unregisterTxEvent(transactionID);
                         eh.disconnect();
@@ -135,9 +139,9 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 return results[0]; // the first returned value is from the 'sendPromise' which is from the 'sendTransaction()' call
             }).catch((err) => {
                 logger.error(
-                    'Failed to send transaction and get notifications within the timeout period.' + err
+                    'Failed to send transaction and get notifications within the timeout period. ' + err
                 );
-                return 'Failed to send transaction and get notifications within the timeout period.' + err;
+                return 'Failed to send transaction and get notifications within the timeout period. ' + err;
             });
         } else {
             logger.error(
@@ -162,14 +166,20 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
             else
                 return { status: 200, txId: tx_id.getTransactionID() };
         } else {
-            logger.error('Failed to order the transaction. Error: ' + response + ' ' + errMsg);
-            return { status: 500, err: 'Failed to order the transaction. Error: ' + response + ' ' + errMsg};
+            logger.error('Failed to order the transaction. Error: ' + response + ' errMsg ' + errMsg);
+            return { status: 500, err: 'Failed to order the transaction. Error: ' + response + ' errMsg ' + errMsg };
         }
     }, (err) => {
-        logger.error('Failed to send transaction due to error: ' + err.stack ? err + ' ' + errMsg
+        logger.error('Failed to send transaction due to error: ' + err.stack ? err + ' errMsg ' + errMsg
             .stack : err);
-        return { status: 500, err: 'Failed to send transaction due to error: ' + (err.stack ? err.stack : err ) + ' ' + errMsg };
+        return { status: 500, err: 'Failed to send transaction due to error: ' + (err.stack ? err.stack : err) + ' errMsg ' + errMsg };
     });
 };
+
+function timeout(duration) { // Thanks joews
+    return new Promise(function (resolve) {
+        setTimeout(resolve, duration);
+    });
+}
 
 exports.invokeChaincode = invokeChaincode;

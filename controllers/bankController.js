@@ -37,7 +37,7 @@ module.exports.calculateRating = async (req, res) => {
 	}
 
 	const bankPutOfferData = [JSON.stringify(requestLink), uniqueString(), parseFloat(interest) + ""];
-	result = await hyplerHelper.runMethodAndRegister('bankPutOffer', 'putBankInfo', bankPutOfferData, [JSON.stringify(bankData)],swiftNumber, org_name, 'bank', attrs, dept);
+	result = await hyplerHelper.runMethodAndRegister('bankPutOffer', 'putBankInfo', bankPutOfferData, [JSON.stringify(bankData)], swiftNumber, org_name, 'bank', attrs, dept);
 	return res.status(result.status).send(result);
 };
 
@@ -79,6 +79,8 @@ module.exports.pull = async (req, res) => {
 		if (!response) throw 'Not a proper response for bankPullOpen4bankOffers'
 
 		let ret = response[0].toString('utf8');
+		// if (ret.startWith('Error'))
+		// 	throw ret;
 		if (ret) ret = JSON.parse(ret);
 
 		// ret = filter(ret, {UserHash: buyerHash});
