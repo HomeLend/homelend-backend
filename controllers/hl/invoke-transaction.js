@@ -108,7 +108,7 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
             if (eventhubs == null)
                 throw new Error('eventhubs = null !');
 
-            console.log('eventHubs', eventhubs.length);
+            console.log('eventHubs', eventhubs);
 
             for (let key in eventhubs) {
                 let event_hub = eventhubs[key];
@@ -125,7 +125,7 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                         event_hub.disconnect();
                         str += "DisconnectAfter->";
                         resolve({ event_status: 'TIMEOUT' }); //we could use reject(new Error('Trnasaction did not complete within 30 seconds'));
-                    }, 3000);
+                    }, 30000);
                     event_hub.connect();
                     str += "afterConnect->";
                     event_hub.registerTxEvent(transactionID, (tx, code) => {
