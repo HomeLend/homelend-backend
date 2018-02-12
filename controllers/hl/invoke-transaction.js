@@ -97,6 +97,9 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
             // fail the test
             let transactionID = tx_id.getTransactionID();
             let eventPromises = [];
+            
+            let sendPromise = channel.sendTransaction(request);
+            eventPromises.push(sendPromise);
 
             if (peerNames == null) {
                 peerNames = channel.getPeers().map(function (peer) {
@@ -163,8 +166,7 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 eventPromises.push(txPromise);
             }
 
-            let sendPromise = channel.sendTransaction(request);
-            return Promise.all([sendPromise].concat(eventPromises)).then((results) => {
+            return Promise.all(eventPromises).then((results) => {
                 logger.debug(' event promise all complete and testing complete');
                 return results[0]; // the first returned value is from the 'sendPromise' which is from the 'sendTransaction()' call
             }).catch((err) => {
