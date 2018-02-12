@@ -110,7 +110,7 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
 
             console.log('eventHubs', eventhubs.length);
 
-            for (let event_hub in eventhubs) {
+            for (let key in eventhubs) {
                 let event_hub = eventhubs[key];
                 if (event_hub == null)
                     throw new Error('eh = null !');
