@@ -54,6 +54,9 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
         logger.error('Failed to enroll user \'' + username + '\'. ' + err);
         throw new Error('Failed to enroll user \'' + username + '\'. ' + err);
     }).then((results) => {
+        if (results == null || results[0] == null)
+            throw new Error('Results = null !');
+
         let proposalResponses = results[0];
         if (results != null && results[0] != null && results[0][0] != null && results[0][0].message != null) {
             errMsg = results[0][0].message;
@@ -62,6 +65,9 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
 
         userHash = get(results, '0.0.response.payload');
         if (userHash) userHash = userHash.toString();
+
+        if (results[1] == null)
+             throw new Error('Results[1] = null !');
 
         let proposal = results[1];
         let all_good = true;
@@ -92,15 +98,20 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
             let transactionID = tx_id.getTransactionID();
             let eventPromises = [];
 
-            if (!peerNames) {
+            if (peerNames == null) {
                 peerNames = channel.getPeers().map(function (peer) {
                     return peer.getName();
                 });
             }
 
             let eventhubs = helper.newEventHubs(peerNames, org);
+            if(eventhubs == null)
+                throw new Error('eventhubs = null !');
+
             for (let key in eventhubs) {
                 let eh = eventhubs[key];
+                if(eh == null)
+                     throw new Error('eh = null !');
                 eh.connect();
                 let txPromise = new Promise((resolve, reject) => {
                     let wasResolved = false;
