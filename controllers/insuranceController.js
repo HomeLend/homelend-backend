@@ -36,7 +36,7 @@ module.exports.register = async (req, res) => {
 
     result = await hyplerHelper.register(licenseNumber, 'putInsuranceCompanyInfo', insCompanyData, org_name, 'insurance', attrs, dept);
     if(result.err) return console.log("Err from blockchain:", result.err)
-    return res.status(result.status).send({tx_id: result, licenseNumber: insCompanyData.LicenseNumber });
+    return result.status == 200 ? res.status(200).send(result.data) : res.status(result.status).send(result.err);    
 };
 
 module.exports.pull = async (req, res) => {

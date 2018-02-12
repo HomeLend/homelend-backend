@@ -11,7 +11,6 @@ const logger = require('./lib/logger');
 require('./lib/db');
 
 /* Register all models */
-require('./models/UsersModel');
 require('./models/PropertyModel');
 
 /* Register all routes */

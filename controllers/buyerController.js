@@ -1,5 +1,4 @@
 const db = require('../lib/db');
-const userModel = db.model('Users');
 const propertyModel = db.model('Properties');
 const httpStatus = require('http-status-codes');
 const invokeChaincode = require('./hl/invoke-transaction');

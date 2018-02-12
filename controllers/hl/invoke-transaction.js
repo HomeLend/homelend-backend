@@ -112,6 +112,7 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 let eh = eventhubs[key];
                 if(eh == null)
                      throw new Error('eh = null !');
+                     
                 eh.connect();
                 let txPromise = new Promise((resolve, reject) => {
                     let wasResolved = false;
