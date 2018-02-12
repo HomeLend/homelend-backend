@@ -32,7 +32,7 @@ module.exports.calculateRating = async (req, res) => {
 		SwiftNumber: swiftNumber
 	};
 	const requestLink = {
-		RequestHash: reqFuestHash,
+		RequestHash: requestHash,
 		UserHash: userHash
 	}
 
