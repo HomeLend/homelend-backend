@@ -121,11 +121,14 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 let txPromise = new Promise((resolve, reject) => {
                     let str =  "In->";
                     let handle = setTimeout(() => {
-                        str += "DisconnectBefore->";
+                        str += "unregisterTxEvent before->";
+                        event_hub.unregisterTxEvent(transactionID);
+                        str += "DisconnectBefore as->";
                         event_hub.disconnect();
                         str += "DisconnectAfter->";
                         resolve({ event_status: 'TIMEOUT' }); //we could use reject(new Error('Trnasaction did not complete within 30 seconds'));
                     }, 30000);
+
                     event_hub.connect();
                     str += "afterConnect->";
                     event_hub.registerTxEvent(transactionID, (tx, code) => {
@@ -151,7 +154,9 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                             resolve(return_status);
                         }
                     }, (err) => {
-                        //this is the callback if something goes wrong with the event registration or processing
+                        clearTimeout(handle);
+                        eh.unregisterTxEvent(tx_id_string);
+						logger.error('Problem setting up the event hub :'+ err.toString());
                         reject(new Error('There was a problem with the eventhub ::' + err + ' str=' +str));
                     });
                 });
