@@ -67,7 +67,7 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
         if (userHash) userHash = userHash.toString();
 
         if (results[1] == null)
-             throw new Error('Results[1] = null !');
+            throw new Error('Results[1] = null !');
 
         let proposal = results[1];
         let all_good = true;
@@ -105,41 +105,44 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
             }
 
             let eventhubs = helper.newEventHubs(peerNames, org);
-            if(eventhubs == null)
+            if (eventhubs == null)
                 throw new Error('eventhubs = null !');
 
-            for (let key in eventhubs) {
-                let eh = eventhubs[key];
-                if(eh == null)
-                     throw new Error('eh = null !');
-                     
-                eh.connect();
+            console.log('eventHubs', eventhubs.length);
+
+            for (let event_hub in eventhubs) {
+                let event_hub = eventhubs[key];
+                if (event_hub == null)
+                    throw new Error('eh = null !');
+
+                // using resolve the promise so that result status may be processed
+                // under the then clause rather than having the catch clause process
+                // the status
                 let txPromise = new Promise((resolve, reject) => {
-                    let wasResolved = false;
-
                     let handle = setTimeout(() => {
-                        eh.disconnect();
-                        if (!wasResolved) {
-                            reject();
-                        }
-                    }, 30000);
-
-                    eh.registerTxEvent(transactionID, (tx, code) => {
-                        wasResolved = true;
+                        event_hub.disconnect();
+                        resolve({ event_status: 'TIMEOUT' }); //we could use reject(new Error('Trnasaction did not complete within 30 seconds'));
+                    }, 3000);
+                    event_hub.connect();
+                    event_hub.registerTxEvent(transactionID, (tx, code) => {
+                        // this is the callback for transaction event status
+                        // first some clean up of event listener
                         clearTimeout(handle);
-                        eh.unregisterTxEvent(transactionID);
-                        eh.disconnect();
+                        event_hub.unregisterTxEvent(transactionID);
+                        event_hub.disconnect();
 
+                        // now let the application know what happened
+                        var return_status = { event_status: code, tx_id: transactionID };
                         if (code !== 'VALID') {
-                            logger.error(
-                                'The balance transfer transaction was invalid, code = ' + code);
-                            reject();
+                            console.error('The transaction was invalid, code = ' + code);
+                            resolve(return_status); // we could use reject(new Error('Problem with the tranaction, event status ::'+code));
                         } else {
-                            logger.info(
-                                'The balance transfer transaction has been committed on peer ' +
-                                eh._ep._endpoint.addr);
-                            resolve();
+                            console.log('The transaction has been committed on peer ' + event_hub._ep._endpoint.addr);
+                            resolve(return_status);
                         }
+                    }, (err) => {
+                        //this is the callback if something goes wrong with the event registration or processing
+                        reject(new Error('There was a problem with the eventhub ::' + err));
                     });
                 });
                 eventPromises.push(txPromise);
