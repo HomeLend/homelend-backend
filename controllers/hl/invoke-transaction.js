@@ -119,17 +119,27 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                 // under the then clause rather than having the catch clause process
                 // the status
                 let txPromise = new Promise((resolve, reject) => {
+                    let str =  "In->";
                     let handle = setTimeout(() => {
+                        str += "DisconnectBefore->";
                         event_hub.disconnect();
+                        str += "DisconnectAfter->";
                         resolve({ event_status: 'TIMEOUT' }); //we could use reject(new Error('Trnasaction did not complete within 30 seconds'));
                     }, 3000);
                     event_hub.connect();
+                    str += "afterConnect->";
                     event_hub.registerTxEvent(transactionID, (tx, code) => {
                         // this is the callback for transaction event status
                         // first some clean up of event listener
                         clearTimeout(handle);
+                        str += "clearTimeout->";
+
                         event_hub.unregisterTxEvent(transactionID);
+                        str += "unregisterTxEvent->";
+
                         event_hub.disconnect();
+                        str += "disconnect->";
+
 
                         // now let the application know what happened
                         var return_status = { event_status: code, tx_id: transactionID };
@@ -142,7 +152,7 @@ let invokeChaincode = function (peerNames, channelName, chaincodeName, fcn, args
                         }
                     }, (err) => {
                         //this is the callback if something goes wrong with the event registration or processing
-                        reject(new Error('There was a problem with the eventhub ::' + err));
+                        reject(new Error('There was a problem with the eventhub ::' + err + ' str=' +str));
                     });
                 });
                 eventPromises.push(txPromise);
